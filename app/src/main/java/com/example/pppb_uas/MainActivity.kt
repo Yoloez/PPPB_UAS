@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lint.kotlin.metadata.Visibility
 import com.example.pppb_uas.ui.theme.PPPB_UASTheme
+import androidx.navigation.compose.rememberNavController
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,14 +36,15 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PPPB_UASTheme {
-                LoginScreen()
+                val navController = rememberNavController()
+                AppNavGraph(navController)
             }
         }
     }
 }
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(onLoginSuccess: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -134,7 +137,7 @@ fun LoginScreen() {
 
             // Login Button
             Button(
-                onClick = { /* Handle login */ },
+                onClick = { onLoginSuccess() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -157,6 +160,6 @@ fun LoginScreen() {
 @Composable
 fun LoginScreenPreview() {
     PPPB_UASTheme {
-        LoginScreen()
+        LoginScreen(onLoginSuccess = {})
     }
 }
