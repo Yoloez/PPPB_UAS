@@ -1,6 +1,8 @@
-package com.example.addosenscreen
+package com.example.pppb_uas.ui.Dosen
+
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -138,9 +140,9 @@ fun AddDosenScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    val darkGreen = Color(0xFF0D4D2E)
-    val lightGreen = Color(0xFF1B5E3D)
-    val yellowButton = Color(0xFFE8C468)
+    val darkGreen = Color(0xFF015023)
+    val lightGreen = Color(0xFF015023)
+    val yellowButton = Color(0xFFDABC4E)
 
     // Handle success state
     LaunchedEffect(uiState.isSuccess) {
@@ -183,7 +185,7 @@ fun AddDosenScreen(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Add",
+                    text = "Add Lecture",
                     color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Medium
@@ -204,12 +206,16 @@ fun AddDosenScreen(
                     onClick = { /* Handle image picker */ }
                 ) {
                     Box(
-                        contentAlignment = Alignment.Center
-                    ) {
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(100.dp)
+                            .border(2.dp, Color.Black, shape = CircleShape)   // BORDER HITAM
+                    )
+                    {
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = "Add Photo",
-                            tint = Color.White.copy(alpha = 0.7f),
+                            tint = Color.Black.copy(alpha = 0.7f),
                             modifier = Modifier.size(32.dp)
                         )
                     }
@@ -239,14 +245,18 @@ fun AddDosenScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = lightGreen,
                         unfocusedContainerColor = lightGreen,
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedBorderColor = Color.Transparent,
+
+
+                        focusedBorderColor = Color.Black,
+                        unfocusedBorderColor = Color.Black,
+
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
                         cursorColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    enabled = !uiState.isLoading
+                    )
+
+
+
                 )
             }
 
@@ -267,8 +277,9 @@ fun AddDosenScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = lightGreen,
                         unfocusedContainerColor = lightGreen,
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedBorderColor = Color.Transparent,
+                        focusedBorderColor = Color.Black,
+                        unfocusedBorderColor = Color.Black,
+
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
                         cursorColor = Color.White
@@ -295,8 +306,9 @@ fun AddDosenScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = lightGreen,
                         unfocusedContainerColor = lightGreen,
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedBorderColor = Color.Transparent,
+                        focusedBorderColor = Color.Black,
+                        unfocusedBorderColor = Color.Black,
+
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
                         cursorColor = Color.White
@@ -324,8 +336,9 @@ fun AddDosenScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = lightGreen,
                         unfocusedContainerColor = lightGreen,
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedBorderColor = Color.Transparent,
+                        focusedBorderColor = Color.Black,
+                        unfocusedBorderColor = Color.Black,
+
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
                         cursorColor = Color.White
