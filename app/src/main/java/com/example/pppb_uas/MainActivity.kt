@@ -26,7 +26,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lint.kotlin.metadata.Visibility
+import androidx.navigation.NavHostController
 import com.example.pppb_uas.ui.theme.PPPB_UASTheme
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import com.example.pppb_uas.ui.screen.DashboardScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,14 +39,15 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PPPB_UASTheme {
-                LoginScreen()
+                val navController = rememberNavController()
+                AppNavGraph(navController)
             }
         }
     }
 }
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(onLoginSuccess: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -134,7 +140,7 @@ fun LoginScreen() {
 
             // Login Button
             Button(
-                onClick = { /* Handle login */ },
+                onClick = { onLoginSuccess() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -153,10 +159,40 @@ fun LoginScreen() {
     }
 }
 
+@Composable
+fun AppNavGraph(navController: NavHostController) {
+    NavHost(
+        navController = navController,
+        startDestination = "login"
+    ) {
+        composable("login") {
+            LoginScreen(
+                onLoginSuccess = {
+                    navController.navigate("dashboard") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("dashboard") {
+            DashboardScreen(
+                userName = "Admin",
+                userEmail = "admin@gmail.com",
+                onCourseClick = {},
+                onLecturerClick = {},
+                onStudentClick = {},
+                onLogout = { navController.navigate("login") }
+            )
+        }
+    }
+}
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun LoginScreenPreview() {
     PPPB_UASTheme {
-        LoginScreen()
+        val navController = rememberNavController()
+        AppNavGraph(navController)
     }
 }
