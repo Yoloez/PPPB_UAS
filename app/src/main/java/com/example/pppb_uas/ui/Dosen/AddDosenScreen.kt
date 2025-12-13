@@ -1,393 +1,235 @@
 package com.example.pppb_uas.ui.Dosen
 
-
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import com.example.pppb_uas.model.Dosen
+import com.example.pppb_uas.preferences.PreferencesManager
+import com.example.pppb_uas.viewmodel.DosenViewModel
 
-
-// ==================== UI STATE ====================
-data class DosenUiState(
-    val name: String = "",
-    val nip: String = "",
-    val email: String = "",
-    val password: String = "",
-    val photoUrl: String = "",
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    val isSuccess: Boolean = false
-)
-
-// ==================== VIEW MODEL ====================
-class AddDosenViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(DosenUiState())
-    val uiState: StateFlow<DosenUiState> = _uiState.asStateFlow()
-
-    fun updateName(name: String) {
-        _uiState.value = _uiState.value.copy(name = name)
-    }
-
-    fun updateNip(nip: String) {
-        _uiState.value = _uiState.value.copy(nip = nip)
-    }
-
-    fun updateEmail(email: String) {
-        _uiState.value = _uiState.value.copy(email = email)
-    }
-
-    fun updatePassword(password: String) {
-        _uiState.value = _uiState.value.copy(password = password)
-    }
-
-    fun updatePhotoUrl(url: String) {
-        _uiState.value = _uiState.value.copy(photoUrl = url)
-    }
-
-    fun saveDosen() {
-        val currentState = _uiState.value
-
-        // Validasi input
-        if (currentState.name.isBlank()) {
-            _uiState.value = currentState.copy(errorMessage = "Name tidak boleh kosong")
-            return
-        }
-        if (currentState.nip.isBlank()) {
-            _uiState.value = currentState.copy(errorMessage = "NIP tidak boleh kosong")
-            return
-        }
-        if (currentState.email.isBlank()) {
-            _uiState.value = currentState.copy(errorMessage = "Email tidak boleh kosong")
-            return
-        }
-        if (!isValidEmail(currentState.email)) {
-            _uiState.value = currentState.copy(errorMessage = "Format email tidak valid")
-            return
-        }
-        if (currentState.password.isBlank()) {
-            _uiState.value = currentState.copy(errorMessage = "Password tidak boleh kosong")
-            return
-        }
-        if (currentState.password.length < 6) {
-            _uiState.value = currentState.copy(errorMessage = "Password minimal 6 karakter")
-            return
-        }
-
-        _uiState.value = currentState.copy(isLoading = true, errorMessage = null)
-
-        // Simulasi save data (ganti dengan logic API call)
-        val dosen = Dosen(
-            id = generateId(),
-            name = currentState.name,
-            nip = currentState.nip,
-            email = currentState.email,
-            password = currentState.password,
-            photoUrl = currentState.photoUrl
-        )
-
-        // TODO: Implement actual save logic (e.g., repository call)
-        // For now, just mark as success
-        _uiState.value = currentState.copy(
-            isLoading = false,
-            isSuccess = true
-        )
-    }
-
-    fun resetState() {
-        _uiState.value = DosenUiState()
-    }
-
-    fun clearError() {
-        _uiState.value = _uiState.value.copy(errorMessage = null)
-    }
-
-    private fun isValidEmail(email: String): Boolean {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
-    }
-
-    private fun generateId(): String {
-        return "DSN${System.currentTimeMillis()}"
-    }
-}
-
-// ==================== COMPOSABLE SCREEN ====================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddDosenScreen(
-    viewModel: AddDosenViewModel = viewModel(),
-    onBackClick: () -> Unit = {},
-    onSaveSuccess: () -> Unit = {}
+    viewModel: DosenViewModel,
+    onBackClick: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val formState by viewModel.addFormState.collectAsState()
+    val context = LocalContext.current
 
+    // Ambil Token
+    val preferencesManager = remember { PreferencesManager(context) }
+    val token by preferencesManager.token.collectAsState(initial = "")
+
+    // Warna
     val darkGreen = Color(0xFF015023)
     val lightGreen = Color(0xFF015023)
     val yellowButton = Color(0xFFDABC4E)
 
-    // Handle success state
-    LaunchedEffect(uiState.isSuccess) {
-        if (uiState.isSuccess) {
-            onSaveSuccess()
-            viewModel.resetState()
+    // Cek Sukses
+    LaunchedEffect(formState.isSuccess) {
+        if (formState.isSuccess) {
+            onBackClick() // Kembali ke list
+            viewModel.resetAddFormState() // Reset form
         }
     }
 
-    // Show error snackbar
-    val snackbarHostState = remember { SnackbarHostState() }
-    LaunchedEffect(uiState.errorMessage) {
-        uiState.errorMessage?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.clearError()
-        }
-    }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Add Lecture", color = Color.White, fontSize = 20.sp) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        // Menggunakan AutoMirrored agar tidak deprecated
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = Color.White)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = darkGreen)
+            )
+        },
+        containerColor = darkGreen
+    ) { paddingValues ->
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(darkGreen)
-    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp)
+                .padding(paddingValues)
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            // Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.White
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // --- BAGIAN FOTO SUDAH DIHAPUS ---
+
+            // Tampilkan Error jika ada
+            if (formState.errorMessage != null) {
                 Text(
-                    text = "Add Lecture",
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Medium
+                    text = formState.errorMessage!!,
+                    color = Color.Red,
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
             }
+
+            // Input Name
+            CustomInput(
+                label = "Name:",
+                value = formState.name,
+                onValueChange = viewModel::onNameChange,
+                color = lightGreen
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Input NIP
+            CustomInput(
+                label = "NIP:",
+                value = formState.nip,
+                onValueChange = viewModel::onNipChange,
+                color = lightGreen
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Input Email
+            CustomInput(
+                label = "Email:",
+                value = formState.email,
+                onValueChange = viewModel::onEmailChange,
+                color = lightGreen,
+                keyboardType = KeyboardType.Email // Keyboard Email
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Input Program ID (Harus Angka)
+            CustomInput(
+                label = "Program Studi ID (Input Angka, cth: 1):",
+                value = formState.programId,
+                onValueChange = viewModel::onProgramIdChange,
+                color = lightGreen,
+                keyboardType = KeyboardType.Number // Keyboard Angka
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Input Password
+            PasswordInput(
+                label = "Password:",
+                value = formState.password,
+                onValueChange = viewModel::onPasswordChange,
+                color = lightGreen
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Input Confirm Password
+            PasswordInput(
+                label = "Confirm Password:",
+                value = formState.confirmPassword,
+                onValueChange = viewModel::onConfirmPasswordChange,
+                color = lightGreen,
+                isError = formState.password.isNotEmpty() && formState.confirmPassword.isNotEmpty() && formState.password != formState.confirmPassword
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Avatar Upload Section
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Surface(
-                    modifier = Modifier.size(100.dp),
-                    shape = CircleShape,
-                    color = lightGreen,
-                    onClick = { /* Handle image picker */ }
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(100.dp)
-                            .border(2.dp, Color.Black, shape = CircleShape)   // BORDER HITAM
-                    )
-                    {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add Photo",
-                            tint = Color.Black.copy(alpha = 0.7f),
-                            modifier = Modifier.size(32.dp)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Add",
-                    color = Color.White,
-                    fontSize = 14.sp
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Name Field
-            Column {
-                Text(
-                    text = "Name:",
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                OutlinedTextField(
-                    value = uiState.name,
-                    onValueChange = { viewModel.updateName(it) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = lightGreen,
-                        unfocusedContainerColor = lightGreen,
-
-
-                        focusedBorderColor = Color.Black,
-                        unfocusedBorderColor = Color.Black,
-
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        cursorColor = Color.White
-                    )
-
-
-
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // NIP Field
-            Column {
-                Text(
-                    text = "NIP:",
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                OutlinedTextField(
-                    value = uiState.nip,
-                    onValueChange = { viewModel.updateNip(it) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = lightGreen,
-                        unfocusedContainerColor = lightGreen,
-                        focusedBorderColor = Color.Black,
-                        unfocusedBorderColor = Color.Black,
-
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        cursorColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    enabled = !uiState.isLoading
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Email Field
-            Column {
-                Text(
-                    text = "Email:",
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                OutlinedTextField(
-                    value = uiState.email,
-                    onValueChange = { viewModel.updateEmail(it) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = lightGreen,
-                        unfocusedContainerColor = lightGreen,
-                        focusedBorderColor = Color.Black,
-                        unfocusedBorderColor = Color.Black,
-
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        cursorColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    enabled = !uiState.isLoading
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Password Field
-            Column {
-                Text(
-                    text = "Password:",
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                OutlinedTextField(
-                    value = uiState.password,
-                    onValueChange = { viewModel.updatePassword(it) },
-                    modifier = Modifier.fillMaxWidth(),
-                    visualTransformation = PasswordVisualTransformation(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = lightGreen,
-                        unfocusedContainerColor = lightGreen,
-                        focusedBorderColor = Color.Black,
-                        unfocusedBorderColor = Color.Black,
-
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        cursorColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    enabled = !uiState.isLoading
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Save Button
+            // Button Save
             Button(
-                onClick = { viewModel.saveDosen() },
+                onClick = { viewModel.saveDosen(token, context) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = yellowButton
-                ),
-                shape = RoundedCornerShape(28.dp),
-                enabled = !uiState.isLoading
+                colors = ButtonDefaults.buttonColors(containerColor = yellowButton),
+                enabled = !formState.isLoading
             ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = darkGreen
-                    )
+                if (formState.isLoading) {
+                    CircularProgressIndicator(color = darkGreen)
                 } else {
                     Text(
-                        text = "Save",
+                        "Save",
                         color = darkGreen,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(24.dp))
         }
-
-        // Snackbar
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
     }
 }
 
-@Preview(showBackground = true)
+// Komponen Input Biasa
 @Composable
-fun AddDosenScreenPreview() {
-    AddDosenScreen()
+fun CustomInput(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    color: Color,
+    keyboardType: KeyboardType = KeyboardType.Text
+) {
+    Text(
+        label,
+        color = Color.White,
+        fontSize = 14.sp,
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier.fillMaxWidth(),
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = color,
+            unfocusedContainerColor = color,
+            focusedBorderColor = Color.Black,
+            unfocusedBorderColor = Color.Black,
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            cursorColor = Color.White
+        ),
+        shape = RoundedCornerShape(8.dp)
+    )
+}
+
+// Komponen Input Password
+@Composable
+fun PasswordInput(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    color: Color,
+    isError: Boolean = false
+) {
+    Text(
+        label,
+        color = Color.White,
+        fontSize = 14.sp,
+        modifier = Modifier.padding(bottom = 8.dp)
+    )
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier.fillMaxWidth(),
+        visualTransformation = PasswordVisualTransformation(),
+        isError = isError,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = color,
+            unfocusedContainerColor = color,
+            focusedBorderColor = Color.Black,
+            unfocusedBorderColor = Color.Black,
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            cursorColor = Color.White,
+            errorBorderColor = Color.Red
+        ),
+        shape = RoundedCornerShape(8.dp)
+    )
 }
