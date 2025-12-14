@@ -6,17 +6,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
@@ -32,7 +28,6 @@ import com.example.pppb_uas.model.Subject
 import com.example.pppb_uas.viewmodel.CourseViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
-
 @Composable
 fun CourseListScreen(
     navController: NavController,
@@ -41,16 +36,12 @@ fun CourseListScreen(
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // PERBAIKAN DI SINI:
-    // 1. Gunakan 'token' sebagai key, bukan Unit. Agar jika token berubah (dari kosong ke isi), ini jalan ulang.
-    // 2. Cek if (token.isNotEmpty()) agar tidak request ke server kalau token belum ada.
     LaunchedEffect(token) {
         if (token.isNotEmpty()) {
             viewModel.getCourses(token)
         }
     }
 
-    // Refresh otomatis saat kembali ke halaman (tetap dipertahankan)
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -65,9 +56,6 @@ fun CourseListScreen(
         }
     }
 
-    // ... sisa kode ke bawah sama persis ...
-
-
     val courses = viewModel.courses
     val isLoading = viewModel.isLoading.value
     val errorMessage = viewModel.errorMessage.value
@@ -75,9 +63,23 @@ fun CourseListScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var courseToDelete by remember { mutableStateOf<Subject?>(null) }
 
+    // --- State untuk Query Pencarian (Logic Tetap) ---
+    var searchQuery by remember { mutableStateOf("") }
+
+    // --- Filter List Courses (Logic Tetap) ---
+    val filteredCourses = remember(courses, searchQuery) {
+        if (searchQuery.isBlank()) {
+            courses
+        } else {
+            courses.filter {
+                it.nameSubject.contains(searchQuery, ignoreCase = true) ||
+                        it.codeSubject.contains(searchQuery, ignoreCase = true)
+            }
+        }
+    }
+
     val darkGreen = Color(0xFF015023)
     val creamColor = Color(0xFFEFE7D3)
-    val yellowColor = Color(0xFFDABC4E)
 
     Scaffold(
         topBar = {
@@ -106,117 +108,178 @@ fun CourseListScreen(
         containerColor = darkGreen
     ) { paddingValues ->
 
-        Box(modifier = Modifier
+        Column(modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
         ) {
-            when {
-                // Loading State
-                isLoading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                        color = creamColor
-                    )
-                }
+            // --- TAMPILAN SEARCH BAR BARU (Putih & Shadow) ---
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                    .shadow(4.dp, RoundedCornerShape(16.dp)),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = {
+                        Text(
+                            "Cari Mata Kuliah...",
+                            color = Color.Gray,
+                            fontSize = 14.sp
+                        )
+                    },
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = darkGreen
+                        )
+                    },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = "Clear Search",
+                                    tint = Color.Gray
+                                )
+                            }
+                        }
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        cursorColor = darkGreen,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
-                // Error State - Server error atau koneksi gagal
-                // Urutan dipindah ke atas agar Error dicek sebelum Empty
-                !isLoading && errorMessage.isNotEmpty() -> {
-                    ErrorStateView(
-                        errorMessage = errorMessage,
-                        onRetryClick = { viewModel.getCourses(token) },
-                        creamColor = creamColor
-                    )
-                }
+            Box(modifier = Modifier.fillMaxSize()) {
+                when {
+                    isLoading -> {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center),
+                            color = creamColor
+                        )
+                    }
 
-                // Empty State - Data belum ada (dan tidak error)
-                !isLoading && courses.isEmpty() -> {
-                    EmptyStateView(
-                        onAddClick = { navController.navigate("add_course") },
-                        creamColor = creamColor
-                    )
-                }
+                    !isLoading && errorMessage.isNotEmpty() -> {
+                        ErrorStateView(
+                            errorMessage = errorMessage,
+                            onRetryClick = { viewModel.getCourses(token) },
+                            creamColor = creamColor
+                        )
+                    }
 
-                // Success State - Ada data
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 20.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(vertical = 20.dp)
-                    ) {
-                        itemsIndexed(courses) { index, course ->
-                            CourseCard(
-                                subject = course,
-                                backgroundColor = creamColor,
-                                onEditClick = {
-                                    // Encode parameter
-                                    val encodedName = java.net.URLEncoder.encode(course.nameSubject, "UTF-8")
-                                    val encodedCode = java.net.URLEncoder.encode(course.codeSubject, "UTF-8")
+                    // Cek filteredCourses, bukan courses asli
+                    !isLoading && filteredCourses.isEmpty() && searchQuery.isNotEmpty() -> {
+                        // Tampilan jika hasil pencarian kosong
+                        Text(
+                            text = "Tidak ditemukan mata kuliah dengan kata kunci \"$searchQuery\"",
+                            color = creamColor,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.align(Alignment.Center).padding(horizontal = 32.dp)
+                        )
+                    }
 
-                                    navController.navigate(
-                                        "edit_course/${course.id}/$encodedName/$encodedCode/${course.sks}"
-                                    )
-                                },
-                                onDeleteClick = {
-                                    courseToDelete = course
-                                    showDeleteDialog = true
-                                }
-                            )
+                    !isLoading && courses.isEmpty() -> {
+                        // Tampilan jika list asli kosong
+                        EmptyStateView(
+                            onAddClick = { navController.navigate("add_course") },
+                            creamColor = creamColor
+                        )
+                    }
+
+                    // Success State - Ada data
+                    else -> {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 20.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            contentPadding = PaddingValues(vertical = 20.dp)
+                        ) {
+                            // Gunakan filteredCourses
+                            itemsIndexed(filteredCourses) { _, course ->
+                                CourseCard(
+                                    subject = course,
+                                    backgroundColor = creamColor,
+                                    onEditClick = {
+                                        // Encode parameter
+                                        val encodedName = java.net.URLEncoder.encode(course.nameSubject, "UTF-8")
+                                        val encodedCode = java.net.URLEncoder.encode(course.codeSubject, "UTF-8")
+
+                                        navController.navigate(
+                                            "edit_course/${course.id}/$encodedName/$encodedCode/${course.sks}"
+                                        )
+                                    },
+                                    onDeleteClick = {
+                                        courseToDelete = course
+                                        showDeleteDialog = true
+                                    }
+                                )
+                            }
                         }
                     }
                 }
             }
+        }
 
-            // Delete Dialog
-            if (showDeleteDialog) {
-                AlertDialog(
-                    onDismissRequest = {
-                        showDeleteDialog = false
-                        courseToDelete = null
-                    },
-                    title = { Text(text = "Hapus Mata Kuliah") },
-                    text = {
-                        Text(text = "Yakin ingin menghapus ${courseToDelete?.nameSubject}?")
-                    },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                courseToDelete?.let { subject ->
-                                    viewModel.deleteCourse(token, subject.id)
-                                }
-                                showDeleteDialog = false
-                                courseToDelete = null
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                        ) {
-                            Text("Hapus", color = Color.White)
-                        }
-                    },
-                    dismissButton = {
-                        OutlinedButton(
-                            onClick = {
-                                showDeleteDialog = false
-                                courseToDelete = null
-                            },
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = darkGreen),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, darkGreen)
-                        ) {
-                            Text("Batal", color = darkGreen)
-                        }
-                    },
-                    containerColor = creamColor,
-                    titleContentColor = darkGreen,
-                    textContentColor = Color.Black
-                )
-            }
+        // Delete Dialog
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    showDeleteDialog = false
+                    courseToDelete = null
+                },
+                title = { Text(text = "Hapus Mata Kuliah") },
+                text = {
+                    Text(text = "Yakin ingin menghapus ${courseToDelete?.nameSubject}?")
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            courseToDelete?.let { subject ->
+                                viewModel.deleteCourse(token, subject.id)
+                            }
+                            showDeleteDialog = false
+                            courseToDelete = null
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    ) {
+                        Text("Hapus", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    OutlinedButton(
+                        onClick = {
+                            showDeleteDialog = false
+                            courseToDelete = null
+                        },
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = darkGreen),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, darkGreen)
+                    ) {
+                        Text("Batal", color = darkGreen)
+                    }
+                },
+                containerColor = creamColor,
+                titleContentColor = darkGreen,
+                textContentColor = Color.Black
+            )
         }
     }
 }
 
-// ... Bagian EmptyStateView, ErrorStateView, dan CourseCard tetap sama seperti kodemu ...
-// Pastikan menyalin fungsi-fungsi composable tersebut juga di bawah sini.
+// ... Fungsi-fungsi Composable lain (EmptyStateView, ErrorStateView, CourseCard) tetap sama ...
 
 @Composable
 fun EmptyStateView(

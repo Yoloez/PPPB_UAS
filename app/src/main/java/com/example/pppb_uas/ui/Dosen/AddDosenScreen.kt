@@ -33,9 +33,9 @@ fun AddDosenScreen(
     val preferencesManager = remember { PreferencesManager(context) }
     val token by preferencesManager.token.collectAsState(initial = "")
 
-    // Warna
+    // Warna (Disamakan dengan Course)
     val darkGreen = Color(0xFF015023)
-    val lightGreen = Color(0xFF015023)
+    val lightGreen = Color(0xFF015023) // Input background sama dengan scaffold
     val yellowButton = Color(0xFFDABC4E)
 
     // Cek Sukses
@@ -52,7 +52,6 @@ fun AddDosenScreen(
                 title = { Text("Add Lecture", color = Color.White, fontSize = 20.sp) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        // Menggunakan AutoMirrored agar tidak deprecated
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = Color.White)
                     }
                 },
@@ -66,12 +65,10 @@ fun AddDosenScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 20.dp) // Padding horizontal disamakan 20.dp
                 .verticalScroll(rememberScrollState())
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // --- BAGIAN FOTO SUDAH DIHAPUS ---
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Tampilkan Error jika ada
             if (formState.errorMessage != null) {
@@ -87,7 +84,7 @@ fun AddDosenScreen(
                 label = "Name:",
                 value = formState.name,
                 onValueChange = viewModel::onNameChange,
-                color = lightGreen
+                containerColor = lightGreen
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -96,7 +93,7 @@ fun AddDosenScreen(
                 label = "NIP:",
                 value = formState.nip,
                 onValueChange = viewModel::onNipChange,
-                color = lightGreen
+                containerColor = lightGreen
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -105,18 +102,18 @@ fun AddDosenScreen(
                 label = "Email:",
                 value = formState.email,
                 onValueChange = viewModel::onEmailChange,
-                color = lightGreen,
-                keyboardType = KeyboardType.Email // Keyboard Email
+                containerColor = lightGreen,
+                keyboardType = KeyboardType.Email
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Input Program ID (Harus Angka)
+            // Input Program ID
             CustomInput(
                 label = "Program Studi ID (Input Angka, cth: 1):",
                 value = formState.programId,
                 onValueChange = viewModel::onProgramIdChange,
-                color = lightGreen,
-                keyboardType = KeyboardType.Number // Keyboard Angka
+                containerColor = lightGreen,
+                keyboardType = KeyboardType.Number
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -125,7 +122,7 @@ fun AddDosenScreen(
                 label = "Password:",
                 value = formState.password,
                 onValueChange = viewModel::onPasswordChange,
-                color = lightGreen
+                containerColor = lightGreen
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -134,28 +131,29 @@ fun AddDosenScreen(
                 label = "Confirm Password:",
                 value = formState.confirmPassword,
                 onValueChange = viewModel::onConfirmPasswordChange,
-                color = lightGreen,
+                containerColor = lightGreen,
                 isError = formState.password.isNotEmpty() && formState.confirmPassword.isNotEmpty() && formState.password != formState.confirmPassword
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(50.dp))
 
-            // Button Save
+            // Button Save (Disamakan Style dengan Course)
             Button(
                 onClick = { viewModel.saveDosen(token, context) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = yellowButton),
+                shape = RoundedCornerShape(28.dp), // Radius Button Course
                 enabled = !formState.isLoading
             ) {
                 if (formState.isLoading) {
-                    CircularProgressIndicator(color = darkGreen)
+                    CircularProgressIndicator(color = darkGreen, modifier = Modifier.size(24.dp))
                 } else {
                     Text(
                         "Save",
                         color = darkGreen,
-                        fontSize = 16.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -165,71 +163,75 @@ fun AddDosenScreen(
     }
 }
 
-// Komponen Input Biasa
+// Komponen Input (Diupdate stylenya agar border putih & radius 12dp)
 @Composable
 fun CustomInput(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
-    color: Color,
+    containerColor: Color,
     keyboardType: KeyboardType = KeyboardType.Text
 ) {
-    Text(
-        label,
-        color = Color.White,
-        fontSize = 14.sp,
-        modifier = Modifier.padding(bottom = 8.dp)
-    )
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth(),
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = color,
-            unfocusedContainerColor = color,
-            focusedBorderColor = Color.Black,
-            unfocusedBorderColor = Color.Black,
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            cursorColor = Color.White
-        ),
-        shape = RoundedCornerShape(8.dp)
-    )
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            label,
+            color = Color.White,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = containerColor,
+                unfocusedContainerColor = containerColor,
+                focusedBorderColor = Color.White,   // Border Putih
+                unfocusedBorderColor = Color.White, // Border Putih
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                cursorColor = Color.White
+            ),
+            shape = RoundedCornerShape(12.dp) // Radius 12dp
+        )
+    }
 }
 
-// Komponen Input Password
+// Komponen Input Password (Diupdate stylenya)
 @Composable
 fun PasswordInput(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
-    color: Color,
+    containerColor: Color,
     isError: Boolean = false
 ) {
-    Text(
-        label,
-        color = Color.White,
-        fontSize = 14.sp,
-        modifier = Modifier.padding(bottom = 8.dp)
-    )
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth(),
-        visualTransformation = PasswordVisualTransformation(),
-        isError = isError,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = color,
-            unfocusedContainerColor = color,
-            focusedBorderColor = Color.Black,
-            unfocusedBorderColor = Color.Black,
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            cursorColor = Color.White,
-            errorBorderColor = Color.Red
-        ),
-        shape = RoundedCornerShape(8.dp)
-    )
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            label,
+            color = Color.White,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            visualTransformation = PasswordVisualTransformation(),
+            isError = isError,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = containerColor,
+                unfocusedContainerColor = containerColor,
+                focusedBorderColor = Color.White,   // Border Putih
+                unfocusedBorderColor = Color.White, // Border Putih
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                cursorColor = Color.White,
+                errorBorderColor = Color.Red
+            ),
+            shape = RoundedCornerShape(12.dp) // Radius 12dp
+        )
+    }
 }

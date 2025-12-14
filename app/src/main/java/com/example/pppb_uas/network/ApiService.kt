@@ -1,13 +1,6 @@
 package com.example.pppb_uas.network
 
-import com.example.pppb_uas.model.BaseResponse
-import com.example.pppb_uas.model.LoginRequest
-import com.example.pppb_uas.model.LoginResponse
-import com.example.pppb_uas.model.Subject
-import com.example.pppb_uas.model.SubjectRequest
-import com.example.pppb_uas.model.Dosen
-import com.example.pppb_uas.model.AddDosenRequest
-
+import com.example.pppb_uas.model.*
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -16,31 +9,21 @@ interface ApiService {
     // ========================================================================
     // AUTHENTICATION
     // ========================================================================
-
     @Headers("Accept: application/json")
     @POST("auth/login")
-    suspend fun login(
-        @Body request: LoginRequest
-    ): Response<LoginResponse>
+    suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
     @Headers("Accept: application/json")
     @POST("auth/logout")
-    suspend fun logout(
-        @Header("Authorization") token: String
-    ): Response<BaseResponse<Any>>
+    suspend fun logout(@Header("Authorization") token: String): Response<BaseResponse<Any>>
 
     // ========================================================================
     // SUBJECTS (MATA KULIAH)
     // ========================================================================
-
-    // READ - Get All Courses
     @Headers("Accept: application/json")
     @GET("manager/subjects")
-    suspend fun getSubjects(
-        @Header("Authorization") token: String
-    ): Response<BaseResponse<List<Subject>>>
+    suspend fun getSubjects(@Header("Authorization") token: String): Response<BaseResponse<List<Subject>>>
 
-    // CREATE - Add New Course
     @Headers("Accept: application/json")
     @POST("manager/subjects")
     suspend fun createSubject(
@@ -48,7 +31,6 @@ interface ApiService {
         @Body request: SubjectRequest
     ): Response<BaseResponse<Any>>
 
-    // UPDATE - Edit Course
     @Headers("Accept: application/json")
     @PUT("manager/subjects/{id}")
     suspend fun updateSubject(
@@ -57,7 +39,6 @@ interface ApiService {
         @Body request: SubjectRequest
     ): Response<BaseResponse<Any>>
 
-    // DELETE - Hapus Course
     @Headers("Accept: application/json")
     @DELETE("manager/subjects/{id}")
     suspend fun deleteSubject(
@@ -66,19 +47,15 @@ interface ApiService {
     ): Response<BaseResponse<Any>>
 
     // ========================================================================
-    // LECTURERS (DOSEN)
-    // Base URL: /api/manager/lecturers
+    // MANAJEMEN USER (DOSEN & MAHASISWA)
+    // Base URL: /api/manager/...
     // ========================================================================
 
-    // READ - Get All Lecturers
+    // --- DOSEN ---
     @Headers("Accept: application/json")
     @GET("manager/lecturers")
-    suspend fun getLecturers(
-        @Header("Authorization") token: String
-    ): Response<BaseResponse<List<Dosen>>>
+    suspend fun getLecturers(@Header("Authorization") token: String): Response<BaseResponse<List<Dosen>>>
 
-    // CREATE - Add New Lecturer
-    // Request Body: name, username, email, password, password_confirmation
     @Headers("Accept: application/json")
     @POST("manager/lecturers")
     suspend fun createLecturer(
@@ -86,12 +63,31 @@ interface ApiService {
         @Body request: AddDosenRequest
     ): Response<BaseResponse<Any>>
 
-    // TOGGLE STATUS - Mengaktifkan/Nonaktifkan Dosen
-    // Route: PATCH /api/manager/users/{id}/toggle-status
+    // --- MAHASISWA ---
+    // GET List Mahasiswa
+    @Headers("Accept: application/json")
+    @GET("manager/students")
+    suspend fun getStudents(@Header("Authorization") token: String): Response<BaseResponse<List<Mahasiswa>>>
+
+    // POST Create Mahasiswa
+    @Headers("Accept: application/json")
+    @POST("manager/students")
+    suspend fun createStudent(
+        @Header("Authorization") token: String,
+        @Body request: AddStudentRequest
+    ): Response<BaseResponse<Any>>
+
+    // --- UMUM (Toggle Status untuk Dosen & Mahasiswa) ---
     @Headers("Accept: application/json")
     @PATCH("manager/users/{id}/toggle-status")
     suspend fun toggleUserStatus(
         @Header("Authorization") token: String,
-        @Path("id") id: String // Gunakan String atau Int sesuai tipe ID di database (UUID vs ID biasa)
+        @Path("id") id: String
     ): Response<BaseResponse<Any>>
+
+    // Di ApiService.kt
+    @GET("manager/programs")
+    suspend fun getProgramStudi(
+        @Header("Authorization") token: String
+    ): Response<ProgramStudiResponse>
 }

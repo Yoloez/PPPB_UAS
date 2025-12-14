@@ -1,4 +1,4 @@
-package com.example.pppb_uas.ui.Dosen
+package com.example.pppb_uas.ui.mahasiswa
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,50 +17,62 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pppb_uas.model.Mahasiswa
 import com.example.pppb_uas.preferences.PreferencesManager
-import com.example.pppb_uas.model.Dosen
-import com.example.pppb_uas.viewmodel.DosenViewModel
+import com.example.pppb_uas.viewmodel.MahasiswaViewModel
+
+// --- Warna Sesuai Desain ---
+val DarkGreen = Color(0xFF015023)
+val CreamItem = Color(0xFFF5E6D3)
+val StatusActive = Color(0xFF4CAF50) // Hijau
+val StatusInactive = Color(0xFFE53935) // Merah
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DosenListScreen(
-    viewModel: DosenViewModel,
-    onAddClick: () -> Unit,
-    onBackClick: () -> Unit
+fun ListMahasiswaScreen(
+    onBackClick: () -> Unit = {},
+    onAddClick: () -> Unit = {},
+    viewModel: MahasiswaViewModel = viewModel()
 ) {
-    val listState by viewModel.listUiState.collectAsState()
     val context = LocalContext.current
     val preferencesManager = remember { PreferencesManager(context) }
+
     val token by preferencesManager.token.collectAsState(initial = "")
-    val DarkGreen = Color(0xFF015023)
+    val listState by viewModel.listUiState.collectAsState()
 
     // --- State untuk Query Pencarian (Logic Tetap) ---
     var searchQuery by remember { mutableStateOf("") }
 
-    // --- Filter List Dosen (Logic Tetap) ---
-    val filteredDosenList = remember(listState.dosenList, searchQuery) {
+    // Fetch data otomatis saat token tersedia
+    LaunchedEffect(token) {
+        if (token.isNotEmpty()) {
+            viewModel.fetchMahasiswa(token)
+        }
+    }
+
+    // --- Filter List Mahasiswa (Logic Tetap) ---
+    val filteredMahasiswaList = remember(listState.listMahasiswa, searchQuery) {
         if (searchQuery.isBlank()) {
-            listState.dosenList
+            listState.listMahasiswa
         } else {
-            listState.dosenList.filter {
-                it.name.contains(searchQuery, ignoreCase = true) ||
-                        it.email.contains(searchQuery, ignoreCase = true) ||
-                        (it.nip?.contains(searchQuery, ignoreCase = true) ?: false)
+            listState.listMahasiswa.filter {
+                (it.name?.contains(searchQuery, ignoreCase = true) ?: false) ||
+                        (it.username?.contains(searchQuery, ignoreCase = true) ?: false) ||
+                        (it.nim?.contains(searchQuery, ignoreCase = true) ?: false) ||
+                        (it.programName?.contains(searchQuery, ignoreCase = true) ?: false)
             }
         }
     }
 
-
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("List Dosen", color = Color.White) },
+                title = { Text("List Mahasiswa", color = Color.White, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = Color.White)
@@ -68,7 +80,7 @@ fun DosenListScreen(
                 },
                 actions = {
                     IconButton(onClick = onAddClick) {
-                        Icon(Icons.Default.Add, "Add", tint = Color.White)
+                        Icon(Icons.Default.Add, "Add Student", tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkGreen)
@@ -76,8 +88,11 @@ fun DosenListScreen(
         },
         containerColor = DarkGreen
     ) { paddingValues ->
+
         Column(
-            modifier = Modifier.padding(paddingValues).fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
             // --- TAMPILAN SEARCH BAR BARU (Putih & Shadow) ---
             Card(
@@ -93,7 +108,7 @@ fun DosenListScreen(
                     onValueChange = { searchQuery = it },
                     placeholder = {
                         Text(
-                            "Cari Dosen (Nama, Email, NIP)...",
+                            "Cari Mahasiswa (Nama, NIM, Prodi)...",
                             color = Color.Gray,
                             fontSize = 14.sp
                         )
@@ -130,14 +145,23 @@ fun DosenListScreen(
                 )
             }
 
+
             if (listState.isLoading) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Color.White)
                 }
-            } else if (filteredDosenList.isEmpty() && searchQuery.isNotEmpty()) {
+            } else if (listState.errorMessage != null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = listState.errorMessage ?: "Terjadi Kesalahan",
+                        color = Color.White,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            } else if (filteredMahasiswaList.isEmpty() && searchQuery.isNotEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        text = "Tidak ditemukan dosen dengan kata kunci \"$searchQuery\"",
+                        text = "Tidak ditemukan mahasiswa dengan kata kunci \"$searchQuery\"",
                         color = Color.White,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                         modifier = Modifier.padding(horizontal = 32.dp)
@@ -149,10 +173,14 @@ fun DosenListScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(filteredDosenList) { dosen -> // Logic List Tetap
-                        DosenItemContainer(
-                            dosen = dosen,
-                            onToggleStatus = { viewModel.toggleDosenStatus(token, dosen.id) }
+                    items(filteredMahasiswaList) { mahasiswa -> // Logic List Tetap
+                        MahasiswaCard(
+                            data = mahasiswa,
+                            onToggleStatus = {
+                                if (token.isNotEmpty()) {
+                                    viewModel.toggleStatus(token, mahasiswa.safeId)
+                                }
+                            }
                         )
                     }
                 }
@@ -162,48 +190,93 @@ fun DosenListScreen(
 }
 
 @Composable
-fun DosenItemContainer(dosen: Dosen, onToggleStatus: () -> Unit) {
+fun MahasiswaCard(
+    data: Mahasiswa,
+    onToggleStatus: () -> Unit
+) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5E6D3)),
+        colors = CardDefaults.cardColors(containerColor = CreamItem),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
-                model = dosen.photoUrl ?: "https://ui-avatars.com/api/?name=${dosen.name}",
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(64.dp).clip(CircleShape).background(Color.Gray)
-            )
+            // Foto Profil
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .background(Color.Gray),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+
             Spacer(modifier = Modifier.width(16.dp))
+
+            // Info Mahasiswa
             Column(modifier = Modifier.weight(1f)) {
-                Text(dosen.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text(dosen.email, fontSize = 14.sp, color = Color.Gray)
-                Text("NIP: ${dosen.nip}", fontSize = 14.sp, color = Color.Gray)
+                Text(
+                    // PRIORITAS: Name -> Username -> ID -> Default
+                    text = data.name ?: data.username ?: data.id ?: "Tanpa Nama",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+                Text(
+                    text = "NIM: ${data.nim ?: "-"}",
+                    fontSize = 14.sp,
+                    color = Color.DarkGray
+                )
+                Text(
+                    text = "Prodi: ${data.programName ?: "-"}",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
 
                 // Status Pill
                 Surface(
-                    color = if (dosen.isActive) Color(0xFF4CAF50) else Color(0xFFE53935),
+                    color = if (data.isActiveBoolean) StatusActive else StatusInactive,
                     shape = RoundedCornerShape(50),
                     modifier = Modifier.padding(top = 8.dp)
                 ) {
-                    Row(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Icon(
-                            if (dosen.isActive) Icons.Default.CheckCircle else Icons.Default.Cancel,
-                            null, tint = Color.White, modifier = Modifier.size(16.dp)
+                            imageVector = if (data.isActiveBoolean) Icons.Default.CheckCircle else Icons.Default.Cancel,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(14.dp)
                         )
                         Spacer(Modifier.width(4.dp))
-                        Text(if (dosen.isActive) "AKTIF" else "NON-AKTIF", color = Color.White, fontSize = 12.sp)
+                        Text(
+                            text = if (data.isActiveBoolean) "AKTIF" else "NON-AKTIF",
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
+
+            // Tombol Power
             IconButton(onClick = onToggleStatus) {
                 Icon(
-                    Icons.Outlined.PowerSettingsNew, null,
-                    tint = if (dosen.isActive) Color(0xFF4CAF50) else Color(0xFFE53935)
+                    imageVector = Icons.Outlined.PowerSettingsNew,
+                    contentDescription = "Toggle Status",
+                    tint = if (data.isActiveBoolean) StatusActive else StatusInactive,
+                    modifier = Modifier.size(28.dp)
                 )
             }
         }
