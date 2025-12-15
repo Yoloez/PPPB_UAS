@@ -19,6 +19,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.pppb_uas.ui.theme.cardBg
+import com.example.pppb_uas.ui.theme.creamColor
+import com.example.pppb_uas.ui.theme.goldAccent
+import com.example.pppb_uas.ui.theme.lightGreen
+import com.example.pppb_uas.ui.theme.primaryGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,11 +38,6 @@ fun DashboardScreen(
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     // Warna Tema Universitas
-    val primaryGreen = Color(0xFF015023)
-    val lightGreen = Color(0xFF027A3D)
-    val creamColor = Color(0xFFF5EFE0)
-    val goldAccent = Color(0xFFD4AF37)
-    val cardBg = Color(0xFFFFFBF5)
 
     Scaffold(
         topBar = {

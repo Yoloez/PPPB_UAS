@@ -70,4 +70,7 @@ dependencies {
     // ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
+
+    //splash screen
+    implementation("androidx.core:core-splashscreen:1.0.1")
 }

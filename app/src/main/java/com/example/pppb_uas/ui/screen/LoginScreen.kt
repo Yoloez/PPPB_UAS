@@ -25,6 +25,7 @@ import androidx.navigation.NavHostController
 import com.example.pppb_uas.R
 import com.example.pppb_uas.navigation.Screen
 import com.example.pppb_uas.preferences.PreferencesManager
+import com.example.pppb_uas.ui.theme.primary
 import com.example.pppb_uas.viewmodel.LoginState
 import com.example.pppb_uas.viewmodel.LoginViewModel
 
@@ -84,7 +85,7 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF015023)) // Warna Hijau Gelap
+            .background(primary) // Warna Hijau Gelap
     ) {
         Column(
             modifier = Modifier
@@ -128,6 +129,8 @@ fun LoginScreen(
                     disabledContainerColor = Color.White,
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
                 ),
                 shape = RoundedCornerShape(8.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
@@ -148,6 +151,8 @@ fun LoginScreen(
                     disabledContainerColor = Color.White,
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
                 ),
                 shape = RoundedCornerShape(8.dp),
                 visualTransformation = PasswordVisualTransformation(),
@@ -182,6 +187,7 @@ fun LoginScreen(
                 } else {
                     Text(
                         text = "Login",
+                        style = MaterialTheme.typography.titleLarge,
                         fontSize = 16.sp,
                         color = Color.Black
                     )
