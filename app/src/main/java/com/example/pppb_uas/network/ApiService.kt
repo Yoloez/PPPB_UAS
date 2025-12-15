@@ -85,9 +85,4 @@ interface ApiService {
         @Path("id") id: String
     ): Response<BaseResponse<Any>>
 
-    // Di ApiService.kt
-    @GET("manager/programs")
-    suspend fun getProgramStudi(
-        @Header("Authorization") token: String
-    ): Response<ProgramStudiResponse>
 }

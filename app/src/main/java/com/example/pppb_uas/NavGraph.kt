@@ -5,9 +5,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -20,27 +17,22 @@ import com.example.pppb_uas.ui.screen.DashboardScreen
 // --- ViewModels ---
 import com.example.pppb_uas.viewmodel.CourseViewModel
 import com.example.pppb_uas.viewmodel.DosenViewModel
-import com.example.pppb_uas.viewmodel.MahasiswaViewModel // ✅ Import Baru
+import com.example.pppb_uas.viewmodel.MahasiswaViewModel
 
-// --- Screens Dosen ---
+// --- Screens ---
 import com.example.pppb_uas.ui.Dosen.DosenListScreen
 import com.example.pppb_uas.ui.Dosen.AddDosenScreen
-
-// --- Screens Course ---
 import com.example.pppb_uas.ui.Course.CourseListScreen
 import com.example.pppb_uas.ui.Course.AddCourseScreen
 import com.example.pppb_uas.ui.Course.EditCourseScreen
-
-// --- Screens Mahasiswa ---
-import com.example.pppb_uas.ui.mahasiswa.ListMahasiswaScreen // ✅ Import Baru
-import com.example.pppb_uas.ui.mahasiswa.AddMahasiswaScreen  // ✅ Import Baru
-
-// Definisikan sealed class Screen jika belum ada di file terpisah
+import com.example.pppb_uas.ui.mahasiswa.ListMahasiswaScreen
+import com.example.pppb_uas.ui.mahasiswa.AddMahasiswaScreen
 
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
-    preferencesManager: PreferencesManager
+    preferencesManager: PreferencesManager,
+    startDestination: String // ✅ Parameter Baru: Menerima halaman awal
 ) {
     val scope = rememberCoroutineScope()
 
@@ -52,11 +44,11 @@ fun AppNavGraph(
     // Inisialisasi ViewModel
     val courseViewModel: CourseViewModel = viewModel()
     val dosenViewModel: DosenViewModel = viewModel()
-    val mahasiswaViewModel: MahasiswaViewModel = viewModel() // ✅ Init ViewModel Mahasiswa
+    val mahasiswaViewModel: MahasiswaViewModel = viewModel()
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Login.route
+        startDestination = startDestination // ✅ Gunakan parameter disini (Bukan hardcode Login)
     ) {
         // --- LOGIN ---
         composable(Screen.Login.route) {
@@ -70,10 +62,11 @@ fun AppNavGraph(
                 userEmail = userEmail ?: "",
                 onCourseClick = { navController.navigate("manage_course") },
                 onLecturerClick = { navController.navigate("manage_lecturer") },
-                onStudentClick = { navController.navigate("manage_student") }, // Tombol Mahasiswa diklik
+                onStudentClick = { navController.navigate("manage_student") },
                 onLogout = {
                     scope.launch {
                         preferencesManager.clearAuthData()
+                        // Logout: Kembali ke Login & Hapus Dashboard dari history
                         navController.navigate(Screen.Login.route) {
                             popUpTo(Screen.Dashboard.route) { inclusive = true }
                         }
@@ -109,13 +102,11 @@ fun AppNavGraph(
         // --- DOSEN ROUTES ---
         composable("manage_lecturer") {
             val safeToken = if (userToken.isNotEmpty()) userToken else ""
-
             LaunchedEffect(Unit) {
                 if (safeToken.isNotEmpty()) {
-                    dosenViewModel.fetchDosenList(safeToken) // Sesuaikan nama fungsi di DosenViewModel kamu
+                    dosenViewModel.fetchDosenList(safeToken)
                 }
             }
-
             DosenListScreen(
                 viewModel = dosenViewModel,
                 onAddClick = { navController.navigate("add_lecturer") },
@@ -130,17 +121,14 @@ fun AppNavGraph(
             )
         }
 
-        // --- MAHASISWA ROUTES (BARU) ---
+        // --- MAHASISWA ROUTES ---
         composable("manage_student") {
             val safeToken = if (userToken.isNotEmpty()) userToken else ""
-
-            // Fetch data mahasiswa saat halaman dibuka
             LaunchedEffect(Unit) {
                 if (safeToken.isNotEmpty()) {
                     mahasiswaViewModel.fetchMahasiswa(safeToken)
                 }
             }
-
             ListMahasiswaScreen(
                 viewModel = mahasiswaViewModel,
                 onAddClick = { navController.navigate("add_student") },
@@ -149,7 +137,6 @@ fun AppNavGraph(
         }
 
         composable("add_student") {
-            // Kita gunakan ViewModel yang sama agar state-nya terjaga jika diperlukan
             AddMahasiswaScreen(
                 viewModel = mahasiswaViewModel,
                 onBackClick = { navController.popBackStack() }

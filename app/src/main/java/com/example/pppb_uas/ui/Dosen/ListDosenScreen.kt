@@ -19,13 +19,25 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.pppb_uas.R // Pastikan import R sesuai package Anda
 import com.example.pppb_uas.preferences.PreferencesManager
 import com.example.pppb_uas.model.Dosen
 import com.example.pppb_uas.viewmodel.DosenViewModel
+
+// Definisi Font Urbanist (Private)
+private val urbanistFontFamily = FontFamily(
+    Font(R.font.urbanist_regular, FontWeight.Normal),
+    Font(R.font.urbanist_medium, FontWeight.Medium),
+    Font(R.font.urbanist_semibold, FontWeight.SemiBold),
+    Font(R.font.urbanist_bold, FontWeight.Bold)
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,10 +52,10 @@ fun DosenListScreen(
     val token by preferencesManager.token.collectAsState(initial = "")
     val DarkGreen = Color(0xFF015023)
 
-    // --- State untuk Query Pencarian (Logic Tetap) ---
+    // --- State untuk Query Pencarian ---
     var searchQuery by remember { mutableStateOf("") }
 
-    // --- Filter List Dosen (Logic Tetap) ---
+    // --- Filter List Dosen ---
     val filteredDosenList = remember(listState.dosenList, searchQuery) {
         if (searchQuery.isBlank()) {
             listState.dosenList
@@ -60,7 +72,13 @@ fun DosenListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("List Dosen", color = Color.White) },
+                title = {
+                    Text(
+                        "List Dosen",
+                        color = Color.White,
+                        fontFamily = urbanistFontFamily
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = Color.White)
@@ -79,7 +97,7 @@ fun DosenListScreen(
         Column(
             modifier = Modifier.padding(paddingValues).fillMaxSize()
         ) {
-            // --- TAMPILAN SEARCH BAR BARU (Putih & Shadow) ---
+            // --- TAMPILAN SEARCH BAR ---
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -95,10 +113,17 @@ fun DosenListScreen(
                         Text(
                             "Cari Dosen (Nama, Email, NIP)...",
                             color = Color.Gray,
-                            fontSize = 14.sp
+                            fontSize = 14.sp,
+                            fontFamily = urbanistFontFamily
                         )
                     },
                     singleLine = true,
+                    // Terapkan Font pada text input search
+                    textStyle = TextStyle(
+                        fontFamily = urbanistFontFamily,
+                        fontSize = 16.sp,
+                        color = Color.Black
+                    ),
                     leadingIcon = {
                         Icon(
                             Icons.Default.Search,
@@ -140,7 +165,8 @@ fun DosenListScreen(
                         text = "Tidak ditemukan dosen dengan kata kunci \"$searchQuery\"",
                         color = Color.White,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 32.dp)
+                        modifier = Modifier.padding(horizontal = 32.dp),
+                        fontFamily = urbanistFontFamily
                     )
                 }
             } else {
@@ -149,7 +175,7 @@ fun DosenListScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(filteredDosenList) { dosen -> // Logic List Tetap
+                    items(filteredDosenList) { dosen ->
                         DosenItemContainer(
                             dosen = dosen,
                             onToggleStatus = { viewModel.toggleDosenStatus(token, dosen.id) }
@@ -180,9 +206,24 @@ fun DosenItemContainer(dosen: Dosen, onToggleStatus: () -> Unit) {
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(dosen.name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text(dosen.email, fontSize = 14.sp, color = Color.Gray)
-                Text("NIP: ${dosen.nip}", fontSize = 14.sp, color = Color.Gray)
+                Text(
+                    dosen.name,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = urbanistFontFamily
+                )
+                Text(
+                    dosen.email,
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    fontFamily = urbanistFontFamily
+                )
+                Text(
+                    "username: ${dosen.nip}",
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    fontFamily = urbanistFontFamily
+                )
 
                 // Status Pill
                 Surface(
@@ -196,7 +237,12 @@ fun DosenItemContainer(dosen: Dosen, onToggleStatus: () -> Unit) {
                             null, tint = Color.White, modifier = Modifier.size(16.dp)
                         )
                         Spacer(Modifier.width(4.dp))
-                        Text(if (dosen.isActive) "AKTIF" else "NON-AKTIF", color = Color.White, fontSize = 12.sp)
+                        Text(
+                            if (dosen.isActive) "AKTIF" else "NON-AKTIF",
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            fontFamily = urbanistFontFamily
+                        )
                     }
                 }
             }

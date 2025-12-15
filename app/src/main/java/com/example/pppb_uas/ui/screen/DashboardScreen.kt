@@ -16,9 +16,20 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.pppb_uas.R // Pastikan import R sesuai package Anda
+
+// --- 1. DEFINISI FONT URBANIST ---
+val urbanistFontFamily = FontFamily(
+    Font(R.font.urbanist_regular, FontWeight.Normal),
+    Font(R.font.urbanist_medium, FontWeight.Medium),
+    Font(R.font.urbanist_semibold, FontWeight.SemiBold),
+    Font(R.font.urbanist_bold, FontWeight.Bold)
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +70,7 @@ fun DashboardScreen(
                                 text = userName.firstOrNull()?.uppercaseChar()?.toString() ?: "A",
                                 color = primaryGreen,
                                 fontWeight = FontWeight.Bold,
+                                fontFamily = urbanistFontFamily, // Pakai Font
                                 fontSize = 18.sp
                             )
                         }
@@ -67,12 +79,14 @@ fun DashboardScreen(
                             Text(
                                 "Dashboard Admin",
                                 fontWeight = FontWeight.Bold,
+                                fontFamily = urbanistFontFamily, // Pakai Font
                                 fontSize = 16.sp,
                                 color = Color.White
                             )
                             Text(
                                 userName,
                                 fontSize = 12.sp,
+                                fontFamily = urbanistFontFamily, // Pakai Font
                                 color = Color.White.copy(alpha = 0.85f)
                             )
                         }
@@ -139,18 +153,21 @@ fun DashboardScreen(
                                 "Selamat Datang",
                                 fontSize = 14.sp,
                                 color = Color.Gray,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.Medium,
+                                fontFamily = urbanistFontFamily // Pakai Font (Medium)
                             )
                             Text(
                                 userName,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = primaryGreen
+                                color = primaryGreen,
+                                fontFamily = urbanistFontFamily // Pakai Font (Bold)
                             )
                             Text(
                                 userEmail,
                                 fontSize = 12.sp,
-                                color = Color.Gray
+                                color = Color.Gray,
+                                fontFamily = urbanistFontFamily // Pakai Font (Regular)
                             )
                         }
                     }
@@ -164,6 +181,7 @@ fun DashboardScreen(
                     color = Color.White,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
+                    fontFamily = urbanistFontFamily, // Pakai Font
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
@@ -246,13 +264,15 @@ fun DashboardScreen(
                 Text(
                     "Konfirmasi Logout",
                     fontWeight = FontWeight.Bold,
-                    color = primaryGreen
+                    color = primaryGreen,
+                    fontFamily = urbanistFontFamily
                 )
             },
             text = {
                 Text(
                     "Apakah Anda yakin ingin keluar dari sistem?",
-                    color = Color.DarkGray
+                    color = Color.DarkGray,
+                    fontFamily = urbanistFontFamily
                 )
             },
             confirmButton = {
@@ -264,7 +284,11 @@ fun DashboardScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = primaryGreen),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Ya, Keluar", fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "Ya, Keluar",
+                        fontWeight = FontWeight.SemiBold,
+                        fontFamily = urbanistFontFamily
+                    )
                 }
             },
             dismissButton = {
@@ -273,7 +297,7 @@ fun DashboardScreen(
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Gray),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Batal")
+                    Text("Batal", fontFamily = urbanistFontFamily)
                 }
             },
             shape = RoundedCornerShape(20.dp),
@@ -332,15 +356,17 @@ fun UniversityMenuCard(
                 Text(
                     text = title,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1A1A)
+                    fontWeight = FontWeight.SemiBold, // Ganti ke SemiBold biar manis
+                    color = Color(0xFF1A1A1A),
+                    fontFamily = urbanistFontFamily // Pakai Font
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = subtitle,
                     fontSize = 13.sp,
                     color = Color.Gray,
-                    lineHeight = 18.sp
+                    lineHeight = 18.sp,
+                    fontFamily = urbanistFontFamily // Pakai Font
                 )
             }
 
@@ -370,13 +396,15 @@ fun InfoBadge(icon: ImageVector, label: String, value: String) {
         Text(
             text = label,
             fontSize = 11.sp,
-            color = Color.White.copy(alpha = 0.7f)
+            color = Color.White.copy(alpha = 0.7f),
+            fontFamily = urbanistFontFamily // Pakai Font
         )
         Text(
             text = value,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = Color.White,
+            fontFamily = urbanistFontFamily // Pakai Font
         )
     }
 }

@@ -6,16 +6,18 @@ import com.google.gson.annotations.SerializedName
 // 1. MODEL UNTUK MENAMPILKAN DATA (GET)
 // ==========================================
 data class Mahasiswa(
-    // ⚠️ PERHATIKAN: key json harus sama persis dengan backend
     @SerializedName("id_user_si") val id: String? = null,
     @SerializedName("name") val name: String? = null,
     @SerializedName("username") val username: String? = null,
     @SerializedName("email") val email: String? = null,
 
-    // Backend mengirim 'nim', bukan 'registration_number'
-    @SerializedName("nim") val nim: String? = null,
+    // ⚠️ PERBAIKAN DISINI ⚠️
+    // Backend mengirim JSON key "registration_number", bukan "nim".
+    // Kita tetap pakai nama variabel 'nim' di Kotlin biar pendek,
+    // tapi mapping-nya harus ke "registration_number".
+    @SerializedName("registration_number")
+    val nim: String? = null,
 
-    // Backend mengirim 'program_name', bukan 'program_id'
     @SerializedName("program_name") val programName: String? = null,
 
     @SerializedName("is_active") val isActiveRaw: Any? = null
@@ -33,38 +35,17 @@ data class Mahasiswa(
     val safeId get() = id ?: ""
 }
 
-// ==========================================
-// 2. MODEL UNTUK MENGIRIM DATA (POST) -> YANG TADI ERROR
-// ==========================================
+// ... (Bagian AddStudentRequest dan Response Wrapper tidak perlu diubah, sudah benar)
 data class AddStudentRequest(
-    @SerializedName("name")
-    val name: String,
-
-    @SerializedName("username")
-    val username: String,
-
-    @SerializedName("email")
-    val email: String,
-
-    @SerializedName("password")
-    val password: String,
-
-    @SerializedName("password_confirmation")
-    val passwordConfirmation: String,
-
-    // Backend minta "registration_number" untuk NIM saat input
-    @SerializedName("registration_number")
-    val nim: String,
-
-    // ⚠️ PERBAIKAN UTAMA DI SINI ⚠️
-    // Sebelumnya "program_id", tapi errornya minta "id_program"
-    @SerializedName("id_program")
-    val programId: Int
+    @SerializedName("name") val name: String,
+    @SerializedName("username") val username: String,
+    @SerializedName("email") val email: String,
+    @SerializedName("password") val password: String,
+    @SerializedName("password_confirmation") val passwordConfirmation: String,
+    @SerializedName("registration_number") val nim: String,
+    @SerializedName("id_program") val programId: Int
 )
 
-// ==========================================
-// 3. RESPONSE WRAPPER
-// ==========================================
 data class MahasiswaResponse(
     @SerializedName("status") val status: String,
     @SerializedName("message") val message: String? = null,

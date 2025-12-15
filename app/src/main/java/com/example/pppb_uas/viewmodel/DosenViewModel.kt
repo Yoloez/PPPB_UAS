@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import com.example.pppb_uas.model.Dosen
 import com.example.pppb_uas.model.AddDosenRequest
-// PAKE INI SESUAI REQUEST LO:
 import com.example.pppb_uas.network.RetrofitInstance
 
 // State List
@@ -44,18 +43,18 @@ class DosenViewModel : ViewModel() {
     val addFormState: StateFlow<AddDosenFormState> = _addFormState.asStateFlow()
 
     // ==========================================
-    // 1. FETCH DOSEN (Pake RetrofitInstance)
+    // 1. FETCH DOSEN (RetrofitInstance)
     // ==========================================
     fun fetchDosenList(token: String) {
         viewModelScope.launch {
             _listUiState.value = _listUiState.value.copy(isLoading = true)
 
             try {
-                // PANGGIL VIA RETROFIT INSTANCE
+                // Call via RetrofitInstance
                 val response = RetrofitInstance.api.getLecturers("Bearer $token")
 
                 if (response.isSuccessful) {
-                    // Ambil data dengan aman (?.let) biar ga crash kalau null
+                    // Ambil data dengan aman (safe call)
                     val dataDosen = response.body()?.data ?: emptyList()
 
                     _listUiState.value = DosenListUiState(
@@ -81,35 +80,35 @@ class DosenViewModel : ViewModel() {
     }
 
     // ==========================================
-    // 2. TOGGLE STATUS (ANTI FORCE CLOSE)
+    // 2. TOGGLE STATUS (Prevent Force Close)
     // ==========================================
     fun toggleDosenStatus(token: String, dosenId: String) {
         viewModelScope.launch {
             try {
                 Log.d("DosenVM", "Toggling ID: $dosenId")
 
-                // PANGGIL API
+                // Call API
                 val response = RetrofitInstance.api.toggleUserStatus("Bearer $token", dosenId)
 
                 if (response.isSuccessful) {
-                    Log.d("DosenVM", "✅ Toggle Sukses di Server")
-                    // Sukses -> Refresh data list biar sinkron
+                    Log.d("DosenVM", "Toggle Sukses di Server")
+                    // Sukses -> Refresh data list
                     fetchDosenList(token)
                 } else {
                     // Baca pesan error dengan aman
                     val errorBody = try { response.errorBody()?.string() } catch (e: Exception) { "Unknown error" }
-                    Log.e("DosenVM", "❌ Gagal Toggle: ${response.code()} - $errorBody")
+                    Log.e("DosenVM", "Gagal Toggle: ${response.code()} - $errorBody")
                 }
             } catch (t: Throwable) {
-                // 👇 INI YANG PENTING: Pakai 'Throwable' biar gak Force Close kalau JSON error
-                Log.e("DosenVM", "⚠️ FORCE CLOSE DITANGKAP: ${t.message}")
+                // Gunakan 'Throwable' untuk menangkap semua jenis error termasuk parsing JSON
+                Log.e("DosenVM", "FORCE CLOSE DITANGKAP: ${t.message}")
                 t.printStackTrace()
             }
         }
     }
 
     // ==========================================
-    // 3. SAVE DOSEN (Pake RetrofitInstance)
+    // 3. SAVE DOSEN (RetrofitInstance)
     // ==========================================
     fun saveDosen(token: String, context: Context) {
         val form = _addFormState.value
@@ -134,10 +133,10 @@ class DosenViewModel : ViewModel() {
                     email = form.email,
                     password = form.password,
                     passwordConfirmation = form.confirmPassword,
-                    idProgram = form.programId // Pastikan user input angka
+                    idProgram = form.programId // Pastikan input berupa angka/valid
                 )
 
-                // PANGGIL VIA RETROFIT INSTANCE
+                // Call via RetrofitInstance
                 val response = RetrofitInstance.api.createLecturer("Bearer $token", requestBody)
 
                 if (response.isSuccessful) {

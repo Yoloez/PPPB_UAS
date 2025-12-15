@@ -1,5 +1,6 @@
 package com.example.pppb_uas.ui.Course
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -10,16 +11,26 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.lifecycle.viewmodel.compose.viewModel
-import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
-
+import com.example.pppb_uas.R
 import com.example.pppb_uas.viewmodel.CourseViewModel
+
+// Definisi Font (Private)
+private val urbanistFontFamily = FontFamily(
+    Font(R.font.urbanist_regular, FontWeight.Normal),
+    Font(R.font.urbanist_medium, FontWeight.Medium),
+    Font(R.font.urbanist_semibold, FontWeight.SemiBold),
+    Font(R.font.urbanist_bold, FontWeight.Bold)
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,17 +44,12 @@ fun EditCourseScreen(
     initialSks: Int
 ) {
     val context = LocalContext.current
-
-    // State
     var name by remember { mutableStateOf(initialName) }
     var code by remember { mutableStateOf(initialCode) }
-    // UBAH DISINI: Ganti 'semester' jadi 'sks' agar konsisten
     var sks by remember { mutableStateOf(initialSks.toString()) }
 
-    // State untuk validasi
     var nameError by remember { mutableStateOf(false) }
     var codeError by remember { mutableStateOf(false) }
-    // UBAH DISINI: Ganti 'semesterError' jadi 'sksError'
     var sksError by remember { mutableStateOf(false) }
 
     val darkGreen = Color(0xFF015023)
@@ -58,26 +64,20 @@ fun EditCourseScreen(
                     Text(
                         "Edit Course",
                         color = Color.White,
-                        fontSize = 20.sp
+                        fontSize = 20.sp,
+                        fontFamily = urbanistFontFamily
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.White
-                        )
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = darkGreen
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = darkGreen)
             )
         },
         containerColor = darkGreen
     ) { paddingValues ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -85,7 +85,6 @@ fun EditCourseScreen(
                 .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Spacer(modifier = Modifier.height(20.dp))
 
             // Input Nama Course
@@ -94,17 +93,16 @@ fun EditCourseScreen(
                     text = "Course Name",
                     color = Color.White,
                     fontSize = 14.sp,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    fontFamily = urbanistFontFamily
                 )
 
                 OutlinedTextField(
                     value = name,
-                    onValueChange = {
-                        name = it
-                        nameError = it.isBlank()
-                    },
+                    onValueChange = { name = it; nameError = it.isBlank() },
                     modifier = Modifier.fillMaxWidth(),
                     isError = nameError,
+                    textStyle = TextStyle(fontFamily = urbanistFontFamily, fontSize = 16.sp, color = Color.White),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = lightGreen,
                         unfocusedContainerColor = lightGreen,
@@ -123,7 +121,8 @@ fun EditCourseScreen(
                         text = "Nama course tidak boleh kosong",
                         color = errorColor,
                         fontSize = 12.sp,
-                        modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                        modifier = Modifier.padding(start = 16.dp, top = 4.dp),
+                        fontFamily = urbanistFontFamily
                     )
                 }
             }
@@ -136,17 +135,16 @@ fun EditCourseScreen(
                     text = "ID:",
                     color = Color.White,
                     fontSize = 14.sp,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    fontFamily = urbanistFontFamily
                 )
 
                 OutlinedTextField(
                     value = code,
-                    onValueChange = {
-                        code = it
-                        codeError = it.isBlank()
-                    },
+                    onValueChange = { code = it; codeError = it.isBlank() },
                     modifier = Modifier.fillMaxWidth(),
                     isError = codeError,
+                    textStyle = TextStyle(fontFamily = urbanistFontFamily, fontSize = 16.sp, color = Color.White),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = lightGreen,
                         unfocusedContainerColor = lightGreen,
@@ -165,27 +163,27 @@ fun EditCourseScreen(
                         text = "ID tidak boleh kosong",
                         color = errorColor,
                         fontSize = 12.sp,
-                        modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                        modifier = Modifier.padding(start = 16.dp, top = 4.dp),
+                        fontFamily = urbanistFontFamily
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Input SKS (Dulu Semester)
+            // Input SKS
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    // UBAH DISINI: Label UI jadi SKS
                     text = "SKS:",
                     color = Color.White,
                     fontSize = 14.sp,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    fontFamily = urbanistFontFamily
                 )
 
                 OutlinedTextField(
                     value = sks,
                     onValueChange = {
-                        // Hanya terima angka
                         if (it.isEmpty() || it.all { char -> char.isDigit() }) {
                             sks = it
                             sksError = it.isBlank()
@@ -194,6 +192,7 @@ fun EditCourseScreen(
                     modifier = Modifier.fillMaxWidth(),
                     isError = sksError,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    textStyle = TextStyle(fontFamily = urbanistFontFamily, fontSize = 16.sp, color = Color.White),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = lightGreen,
                         unfocusedContainerColor = lightGreen,
@@ -209,11 +208,11 @@ fun EditCourseScreen(
 
                 if (sksError) {
                     Text(
-                        // UBAH DISINI: Error message jadi SKS
                         text = "SKS tidak boleh kosong",
                         color = errorColor,
                         fontSize = 12.sp,
-                        modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                        modifier = Modifier.padding(start = 16.dp, top = 4.dp),
+                        fontFamily = urbanistFontFamily
                     )
                 }
             }
@@ -223,14 +222,10 @@ fun EditCourseScreen(
             // Tombol Update
             Button(
                 onClick = {
-                    // Validasi sebelum submit
                     nameError = name.isBlank()
                     codeError = code.isBlank()
                     sksError = sks.isBlank()
-
                     if (!nameError && !codeError && !sksError) {
-                        // Data valid, kirim ke ViewModel
-                        // Menggunakan variabel 'sks'
                         viewModel.updateCourse(token, courseId, name, code, sks) {
                             Toast.makeText(context, "Course berhasil diupdate", Toast.LENGTH_SHORT).show()
                             navController.popBackStack()
@@ -240,9 +235,7 @@ fun EditCourseScreen(
                     }
                 },
                 enabled = !viewModel.isLoading.value,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = yellowButton,
                     disabledContainerColor = yellowButton.copy(alpha = 0.5f)
@@ -250,28 +243,26 @@ fun EditCourseScreen(
                 shape = RoundedCornerShape(28.dp)
             ) {
                 if (viewModel.isLoading.value) {
-                    CircularProgressIndicator(
-                        color = darkGreen,
-                        modifier = Modifier.size(24.dp)
-                    )
+                    CircularProgressIndicator(color = darkGreen, modifier = Modifier.size(24.dp))
                 } else {
                     Text(
                         text = "Update",
                         color = darkGreen,
                         fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        fontFamily = urbanistFontFamily
                     )
                 }
             }
 
-            // Tampilkan error message jika ada dari ViewModel
             if (viewModel.errorMessage.value.isNotEmpty() && !viewModel.isLoading.value) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = viewModel.errorMessage.value,
                     color = errorColor,
                     fontSize = 14.sp,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    fontFamily = urbanistFontFamily
                 )
             }
         }

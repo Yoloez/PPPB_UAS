@@ -18,19 +18,31 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pppb_uas.R // Pastikan import R sesuai package
 import com.example.pppb_uas.model.Mahasiswa
 import com.example.pppb_uas.preferences.PreferencesManager
 import com.example.pppb_uas.viewmodel.MahasiswaViewModel
 
+// Definisi Font (Private)
+private val urbanistFontFamily = FontFamily(
+    Font(R.font.urbanist_regular, FontWeight.Normal),
+    Font(R.font.urbanist_medium, FontWeight.Medium),
+    Font(R.font.urbanist_semibold, FontWeight.SemiBold),
+    Font(R.font.urbanist_bold, FontWeight.Bold)
+)
+
 // --- Warna Sesuai Desain ---
-val DarkGreen = Color(0xFF015023)
-val CreamItem = Color(0xFFF5E6D3)
-val StatusActive = Color(0xFF4CAF50) // Hijau
-val StatusInactive = Color(0xFFE53935) // Merah
+private val DarkGreen = Color(0xFF015023)
+private val CreamItem = Color(0xFFF5E6D3)
+private val StatusActive = Color(0xFF4CAF50) // Hijau
+private val StatusInactive = Color(0xFFE53935) // Merah
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,17 +57,14 @@ fun ListMahasiswaScreen(
     val token by preferencesManager.token.collectAsState(initial = "")
     val listState by viewModel.listUiState.collectAsState()
 
-    // --- State untuk Query Pencarian (Logic Tetap) ---
     var searchQuery by remember { mutableStateOf("") }
 
-    // Fetch data otomatis saat token tersedia
     LaunchedEffect(token) {
         if (token.isNotEmpty()) {
             viewModel.fetchMahasiswa(token)
         }
     }
 
-    // --- Filter List Mahasiswa (Logic Tetap) ---
     val filteredMahasiswaList = remember(listState.listMahasiswa, searchQuery) {
         if (searchQuery.isBlank()) {
             listState.listMahasiswa
@@ -72,7 +81,14 @@ fun ListMahasiswaScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("List Mahasiswa", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        "List Mahasiswa",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = urbanistFontFamily
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = Color.White)
@@ -94,7 +110,7 @@ fun ListMahasiswaScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // --- TAMPILAN SEARCH BAR BARU (Putih & Shadow) ---
+            // --- SEARCH BAR ---
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -110,10 +126,17 @@ fun ListMahasiswaScreen(
                         Text(
                             "Cari Mahasiswa (Nama, NIM, Prodi)...",
                             color = Color.Gray,
-                            fontSize = 14.sp
+                            fontSize = 14.sp,
+                            fontFamily = urbanistFontFamily
                         )
                     },
                     singleLine = true,
+                    // Terapkan Font Urbanist
+                    textStyle = TextStyle(
+                        fontFamily = urbanistFontFamily,
+                        fontSize = 16.sp,
+                        color = Color.Black
+                    ),
                     leadingIcon = {
                         Icon(
                             Icons.Default.Search,
@@ -145,7 +168,6 @@ fun ListMahasiswaScreen(
                 )
             }
 
-
             if (listState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Color.White)
@@ -155,7 +177,8 @@ fun ListMahasiswaScreen(
                     Text(
                         text = listState.errorMessage ?: "Terjadi Kesalahan",
                         color = Color.White,
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(16.dp),
+                        fontFamily = urbanistFontFamily
                     )
                 }
             } else if (filteredMahasiswaList.isEmpty() && searchQuery.isNotEmpty()) {
@@ -164,7 +187,8 @@ fun ListMahasiswaScreen(
                         text = "Tidak ditemukan mahasiswa dengan kata kunci \"$searchQuery\"",
                         color = Color.White,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 32.dp)
+                        modifier = Modifier.padding(horizontal = 32.dp),
+                        fontFamily = urbanistFontFamily
                     )
                 }
             } else {
@@ -173,7 +197,7 @@ fun ListMahasiswaScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(filteredMahasiswaList) { mahasiswa -> // Logic List Tetap
+                    items(filteredMahasiswaList) { mahasiswa ->
                         MahasiswaCard(
                             data = mahasiswa,
                             onToggleStatus = {
@@ -226,21 +250,23 @@ fun MahasiswaCard(
             // Info Mahasiswa
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    // PRIORITAS: Name -> Username -> ID -> Default
                     text = data.name ?: data.username ?: data.id ?: "Tanpa Nama",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = Color.Black,
+                    fontFamily = urbanistFontFamily
                 )
                 Text(
                     text = "NIM: ${data.nim ?: "-"}",
                     fontSize = 14.sp,
-                    color = Color.DarkGray
+                    color = Color.DarkGray,
+                    fontFamily = urbanistFontFamily
                 )
                 Text(
                     text = "Prodi: ${data.programName ?: "-"}",
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = Color.Gray,
+                    fontFamily = urbanistFontFamily
                 )
 
                 // Status Pill
@@ -264,7 +290,8 @@ fun MahasiswaCard(
                             text = if (data.isActiveBoolean) "AKTIF" else "NON-AKTIF",
                             color = Color.White,
                             fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = urbanistFontFamily
                         )
                     }
                 }
