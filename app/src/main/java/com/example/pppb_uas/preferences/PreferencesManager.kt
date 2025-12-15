@@ -13,8 +13,6 @@ import kotlinx.coroutines.flow.map
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "auth_preferences")
 
 class PreferencesManager(private val context: Context) {
-
-    // --- 1. COMPANION OBJECT (Hanya boleh satu) ---
     companion object {
         private val TOKEN_KEY = stringPreferencesKey("auth_token")
         private val USER_NAME_KEY = stringPreferencesKey("user_name")
@@ -29,17 +27,13 @@ class PreferencesManager(private val context: Context) {
         preferences[TOKEN_KEY] ?: ""
     }
 
-    // User Name: Bisa null
     val userName: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[USER_NAME_KEY]
     }
 
-    // User Email: Bisa null
     val userEmail: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[USER_EMAIL_KEY]
     }
-
-    // --- 3. ACTION FUNCTIONS ---
 
     suspend fun saveAuthData(token: String, name: String, email: String, userId: String) {
         context.dataStore.edit { preferences ->

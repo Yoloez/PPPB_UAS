@@ -1,10 +1,13 @@
 package com.example.pppb_uas.ui.screen
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -16,10 +19,12 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.pppb_uas.ui.theme.cardBg
+import com.example.pppb_uas.R
 import com.example.pppb_uas.ui.theme.creamColor
 import com.example.pppb_uas.ui.theme.goldAccent
 import com.example.pppb_uas.ui.theme.lightGreen
@@ -36,8 +41,6 @@ fun DashboardScreen(
     onLogout: () -> Unit
 ) {
     var showLogoutDialog by remember { mutableStateOf(false) }
-
-    // Warna Tema Universitas
 
     Scaffold(
         topBar = {
@@ -111,6 +114,7 @@ fun DashboardScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
                     .padding(20.dp)
             ) {
                 // Welcome Card
@@ -167,35 +171,29 @@ fun DashboardScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // Menu Cards
-                UniversityMenuCard(
+                // Menu Cards dengan Background Batik
+                BatikMenuCard(
+                    label = "Course",
                     title = "Manajemen Mata Kuliah",
                     subtitle = "Kelola data mata kuliah dan jadwal",
-                    icon = Icons.Filled.MenuBook,
-                    iconBg = Color(0xFF4CAF50),
-                    cardBg = cardBg,
                     onClick = onCourseClick
                 )
 
                 Spacer(Modifier.height(16.dp))
 
-                UniversityMenuCard(
+                BatikMenuCard(
+                    label = "Lecturer",
                     title = "Manajemen Dosen",
                     subtitle = "Kelola data dosen pengajar",
-                    icon = Icons.Filled.Person,
-                    iconBg = Color(0xFF2196F3),
-                    cardBg = cardBg,
                     onClick = onLecturerClick
                 )
 
                 Spacer(Modifier.height(16.dp))
 
-                UniversityMenuCard(
+                BatikMenuCard(
+                    label = "Student",
                     title = "Manajemen Mahasiswa",
                     subtitle = "Kelola data mahasiswa aktif",
-                    icon = Icons.Filled.Groups,
-                    iconBg = Color(0xFFFF9800),
-                    cardBg = cardBg,
                     onClick = onStudentClick
                 )
 
@@ -264,7 +262,11 @@ fun DashboardScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = primaryGreen),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Ya, Keluar", fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "Ya, Keluar",
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
                 }
             },
             dismissButton = {
@@ -283,74 +285,74 @@ fun DashboardScreen(
 }
 
 @Composable
-fun UniversityMenuCard(
+fun BatikMenuCard(
+    label: String,
     title: String,
     subtitle: String,
-    icon: ImageVector,
-    iconBg: Color,
-    cardBg: Color,
     onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .height(140.dp)
             .shadow(6.dp, RoundedCornerShape(20.dp))
             .clickable {
                 android.util.Log.d("UI_DEBUG", "Card diklik: $title")
                 onClick()
             },
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = cardBg),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
-            // Icon Container
-            Box(
+            // Background Batik Image
+            Image(
+                painter = painterResource(id = R.drawable.batik),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            // Content Overlay
+            Column(
                 modifier = Modifier
-                    .size(60.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(iconBg.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .padding(20.dp)
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = iconBg,
-                    modifier = Modifier.size(32.dp)
-                )
-            }
+                // Label Badge
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = goldAccent,
+                    modifier = Modifier.wrapContentSize()
+                ) {
+                    Text(
+                        text = label,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White,
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp)
+                    )
+                }
 
-            Spacer(Modifier.width(16.dp))
+                Spacer(Modifier.weight(1f))
 
-            // Text Content
-            Column(modifier = Modifier.weight(1f)) {
+                // Title and Subtitle
                 Text(
                     text = title,
-                    fontSize = 16.sp,
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1A1A)
+                    color = Color(0xFF2C2C2C)
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = subtitle,
-                    fontSize = 13.sp,
-                    color = Color.Gray,
-                    lineHeight = 18.sp
+                    fontSize = 12.sp,
+                    color = Color(0xFF5C5C5C),
+                    lineHeight = 16.sp
                 )
             }
-
-            // Arrow Icon
-            Icon(
-                Icons.Filled.ChevronRight,
-                contentDescription = null,
-                tint = Color.Gray,
-                modifier = Modifier.size(28.dp)
-            )
         }
     }
 }

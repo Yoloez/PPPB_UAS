@@ -13,7 +13,6 @@ import org.json.JSONObject
 
 class CourseViewModel : ViewModel() {
 
-    // ✅ Pakai RetrofitInstance yang sudah ada
     private val apiService = RetrofitInstance.api
 
     // State untuk menyimpan data
@@ -86,7 +85,7 @@ class CourseViewModel : ViewModel() {
                 Log.d("CourseVM", "Add response code: ${response.code()}")
 
                 if (response.isSuccessful) {
-                    Log.d("CourseVM", "✅ Course added successfully")
+                    Log.d("CourseVM", "Mata Kuliah Berhasil Ditambahkan")
 
                     // Refresh data
                     getCourses(token)

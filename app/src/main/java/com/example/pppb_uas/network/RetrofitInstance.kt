@@ -8,14 +8,12 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitInstance {
-    // ✅ TAMBAHKAN /api/ di akhir BASE_URL
     private const val BASE_URL = "https://api.trisuladana.com/api/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
-    // ✅ TAMBAHKAN Gson dengan setLenient untuk handle JSON error
     private val gson = GsonBuilder()
         .setLenient()
         .create()

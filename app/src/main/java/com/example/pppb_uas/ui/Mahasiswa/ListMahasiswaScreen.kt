@@ -17,11 +17,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.pppb_uas.model.Mahasiswa
 import com.example.pppb_uas.preferences.PreferencesManager
 import com.example.pppb_uas.viewmodel.MahasiswaViewModel
@@ -205,29 +207,27 @@ fun MahasiswaCard(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Foto Profil
-            Box(
+            AsyncImage(
+                model = if (!data.profilImage.isNullOrEmpty()) {
+                    data.profilImage
+                } else {
+                    // Fallback: Generate avatar dari inisial nama jika foto kosong
+                    "https://ui-avatars.com/api/?name=${data.name}&background=random&color=fff"
+                },
+                contentDescription = "Foto Profil ${data.name}",
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(64.dp)
                     .clip(CircleShape)
-                    .background(Color.Gray),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(40.dp)
-                )
-            }
+                    .background(Color.LightGray) // Warna background saat loading
+            )
 
             Spacer(modifier = Modifier.width(16.dp))
 
             // Info Mahasiswa
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    // PRIORITAS: Name -> Username -> ID -> Default
-                    text = data.name ?: data.username ?: data.id ?: "Tanpa Nama",
+                    text = data.name ?: "Tanpa Nama",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
