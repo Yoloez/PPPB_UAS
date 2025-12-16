@@ -28,6 +28,7 @@ import com.example.pppb_uas.R
 import com.example.pppb_uas.ui.theme.creamColor
 import com.example.pppb_uas.ui.theme.goldAccent
 import com.example.pppb_uas.ui.theme.lightGreen
+import com.example.pppb_uas.ui.theme.primary
 import com.example.pppb_uas.ui.theme.primaryGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -101,14 +102,8 @@ fun DashboardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            primaryGreen,
-                            lightGreen,
-                            Color(0xFF03471F)
-                        )
-                    )
-                )
+                        primaryGreen)
+
                 .padding(paddingValues)
         ) {
             Column(

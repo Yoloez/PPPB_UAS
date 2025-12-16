@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
         // PENTING: Harus dipanggil SEBELUM super.onCreate()
         // Ini akan menggunakan theme 'Theme.App.Starting' yang kita set di Manifest
         // lalu otomatis beralih ke 'Theme.PPPB_UAS' (postSplashScreenTheme) setelah selesai.
-        val splashScreen = installSplashScreen()
+        installSplashScreen()
 
         super.onCreate(savedInstanceState)
 
