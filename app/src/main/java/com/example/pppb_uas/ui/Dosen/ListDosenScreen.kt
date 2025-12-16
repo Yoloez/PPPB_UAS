@@ -190,7 +190,8 @@ fun DosenItemContainer(dosen: Dosen, onToggleStatus: () -> Unit) {
                     shape = RoundedCornerShape(50),
                     modifier = Modifier.padding(top = 8.dp)
                 ) {
-                    Row(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
+                    Row(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             if (dosen.isActive) Icons.Default.CheckCircle else Icons.Default.Cancel,
                             null, tint = Color.White, modifier = Modifier.size(16.dp)

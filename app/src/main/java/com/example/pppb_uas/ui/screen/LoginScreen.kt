@@ -119,11 +119,11 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Input Email
+            // Input Email - Label hilang saat input
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") },
+                placeholder = { Text("Email", color = Color.Black) },
                 enabled = loginState !is LoginState.Loading,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -141,11 +141,11 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Input Password dengan Toggle Visibility
+            // Input Password - Label hilang saat input
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Password") },
+                placeholder = { Text("Password", color = Color.Black)},
                 enabled = loginState !is LoginState.Loading,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(

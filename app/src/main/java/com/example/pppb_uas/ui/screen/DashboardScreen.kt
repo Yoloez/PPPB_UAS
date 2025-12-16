@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pppb_uas.R
+import com.example.pppb_uas.ui.theme.UrbanistFontFamily
 import com.example.pppb_uas.ui.theme.creamColor
 import com.example.pppb_uas.ui.theme.goldAccent
 import com.example.pppb_uas.ui.theme.lightGreen
@@ -239,12 +240,14 @@ fun DashboardScreen(
                 Text(
                     "Konfirmasi Logout",
                     fontWeight = FontWeight.Bold,
+                    fontFamily = UrbanistFontFamily,
                     color = primaryGreen
                 )
             },
             text = {
                 Text(
                     "Apakah Anda yakin ingin keluar dari sistem?",
+                    fontFamily = UrbanistFontFamily,
                     color = Color.DarkGray
                 )
             },
