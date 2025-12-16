@@ -19,27 +19,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.pppb_uas.R
 import com.example.pppb_uas.preferences.PreferencesManager
 import com.example.pppb_uas.viewmodel.AddMahasiswaUiState
 import com.example.pppb_uas.viewmodel.MahasiswaViewModel
 
-// Definisi Font (Private)
-private val urbanistFontFamily = FontFamily(
-    Font(R.font.urbanist_regular, FontWeight.Normal),
-    Font(R.font.urbanist_black, FontWeight.SemiBold),
-    Font(R.font.urbanist_bold, FontWeight.Bold)
-)
-
-// --- Interface State ---
+// --- Interface State (Updated: Tambah Confirm Password) ---
 interface AddMahasiswaState {
     val name: String
     val username: String
@@ -66,18 +58,15 @@ interface AddMahasiswaState {
 }
 
 // --- Warna Sesuai Desain ---
-private val GreenMain = Color(0xFF015023)
-private val GreenDarkInput = Color(0xFF01331A)
-private val GoldButton = Color(0xFFD4B35A)
-private val TextWhite = Color.White
+val GreenMain = Color(0xFF014623)
+val GoldButton = Color(0xFFD4B35A)
+val TextWhite = Color.White
 
-// --- DATA DUMMY PROGRAM STUDI ---
-// Key (Kiri) = ID yang akan dikirim ke Server
-// Value (Kanan) = Nama yang tampil di Dropdown
-val programStudiOptions = mapOf(
+// --- Data Program (Sesuaikan dengan data real Anda) ---
+val programOptions = mapOf(
     "1" to "Teknologi Rekayasa Perangkat Lunak",
     "2" to "Teknik Informatika",
-    "3" to "Sistem Informasi",
+    "3" to "Sistem Informasi"
 )
 
 // --- COMPOSABLE UTAMA ---
@@ -87,24 +76,29 @@ fun AddMahasiswaScreen(
     viewModel: MahasiswaViewModel = viewModel()
 ) {
     val context = LocalContext.current
+
+    // 1. Ambil Token Asli
     val preferencesManager = remember { PreferencesManager(context) }
     val tokenState = preferencesManager.token.collectAsState(initial = "")
     val token = tokenState.value
 
+    // 2. Hubungkan ViewModel ke Helper Class
     val stateWrapper = remember(viewModel, token) {
         RealAddMahasiswaState(viewModel, token)
     }
 
+    // 3. Collect State dari ViewModel
     val addUiState by viewModel.addUiState.collectAsState()
     stateWrapper.currentState = addUiState
 
+    // 4. Panggil UI Murni
     AddMahasiswaContent(
         onBackClick = onBackClick,
         state = stateWrapper
     )
 }
 
-// --- UI MURNI ---
+// --- UI MURNI (WITH KEYBOARD AVOIDANCE) ---
 @Composable
 fun AddMahasiswaContent(
     onBackClick: () -> Unit = {},
@@ -113,6 +107,7 @@ fun AddMahasiswaContent(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
+    // Efek Samping: Sukses / Error dari API
     LaunchedEffect(state.submissionStatus, state.isSuccess) {
         if (state.isSuccess) {
             Toast.makeText(context, "Berhasil menambahkan mahasiswa!", Toast.LENGTH_SHORT).show()
@@ -126,167 +121,108 @@ fun AddMahasiswaContent(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(GreenMain)
-            .verticalScroll(scrollState)
-            .padding(24.dp)
-    ) {
-        // --- Header ---
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 32.dp)
+    // Scaffold dengan imePadding untuk keyboard avoidance
+    Scaffold(
+        containerColor = GreenMain,
+        modifier = Modifier.fillMaxSize()
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .imePadding() // KEYBOARD AVOIDANCE
+                .verticalScroll(scrollState)
+                .padding(24.dp)
         ) {
-            IconButton(onClick = onBackClick) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = TextWhite)
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                "Add Mahasiswa",
-                color = TextWhite,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = urbanistFontFamily
-            )
-        }
-
-        // --- Form Input ---
-        CustomTextField(label = "Name:", value = state.name, onValueChange = state::updateName)
-        CustomTextField(label = "Username:", value = state.username, onValueChange = state::updateUsername)
-        CustomTextField(label = "NIM:", value = state.nim, onValueChange = state::updateNim, isNumber = true)
-        CustomTextField(label = "Email:", value = state.email, onValueChange = state::updateEmail)
-
-        // Password
-        CustomTextField(label = "Password:", value = state.password, onValueChange = state::updatePassword, isPassword = true)
-
-        // Confirm Password
-        CustomTextField(label = "Confirm Password:", value = state.confirmPassword, onValueChange = state::updateConfirmPassword, isPassword = true)
-
-        // --- Program ID (Diganti jadi Dropdown) ---
-        CustomDropdownField(
-            label = "Program Study:",
-            selectedId = state.programId,
-            onValueChange = state::updateProgramId,
-            options = programStudiOptions
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // --- Tombol Save ---
-        Button(
-            onClick = { state.validateAndSave(context) },
-            colors = ButtonDefaults.buttonColors(containerColor = GoldButton),
-            shape = RoundedCornerShape(30.dp),
-            enabled = !state.isLoading,
-            modifier = Modifier.fillMaxWidth().height(50.dp)
-        ) {
-            if (state.isLoading) {
-                CircularProgressIndicator(
-                    color = Color.Black,
-                    modifier = Modifier.size(24.dp),
-                    strokeWidth = 3.dp
-                )
-            } else {
-                Text(
-                    "Save",
-                    color = Color.Black,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    fontFamily = urbanistFontFamily
-                )
-            }
-        }
-    }
-}
-
-// --- Komponen Dropdown Baru (Meniru Style CustomTextField) ---
-@Composable
-fun CustomDropdownField(
-    label: String,
-    selectedId: String,
-    onValueChange: (String) -> Unit,
-    options: Map<String, String>
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    // Tampilkan Nama Program berdasarkan ID yang dipilih, jika kosong tampilkan ""
-    val displayText = options[selectedId] ?: ""
-
-    Column(modifier = Modifier.padding(bottom = 16.dp).fillMaxWidth()) {
-        Text(
-            text = label,
-            color = TextWhite,
-            fontSize = 14.sp,
-            modifier = Modifier.padding(bottom = 8.dp),
-            fontFamily = urbanistFontFamily
-        )
-
-        Box(modifier = Modifier.fillMaxWidth()) {
-            OutlinedTextField(
-                value = displayText,
-                onValueChange = {}, // ReadOnly
-                readOnly = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                trailingIcon = {
-                    Icon(
-                        imageVector = if (expanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
-                        contentDescription = null,
-                        tint = TextWhite
-                    )
-                },
-                textStyle = TextStyle(
-                    fontFamily = urbanistFontFamily,
-                    fontSize = 16.sp,
-                    color = TextWhite
-                ),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = GreenMain,
-                    unfocusedContainerColor = GreenMain,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White,
-                    cursorColor = TextWhite,
-                    focusedTextColor = TextWhite,
-                    unfocusedTextColor = TextWhite
-                ),
-                singleLine = true
-            )
-
-            // Layer transparan untuk menangkap klik agar dropdown muncul
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .clickable { expanded = !expanded }
-            )
-
-            // Menu Dropdown
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.background(Color.White) // Background putih agar teks hitam terbaca
+            // --- Header ---
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 32.dp)
             ) {
-                options.forEach { (id, name) ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = name,
-                                color = Color.Black,
-                                fontFamily = urbanistFontFamily
-                            )
-                        },
-                        onClick = {
-                            onValueChange(id) // Simpan ID (misal "1") ke state
-                            expanded = false
-                        }
+                IconButton(onClick = onBackClick) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = TextWhite)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Add Mahasiswa", color = TextWhite, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            }
+
+            // --- Form Input ---
+            CustomTextField(
+                label = "Name:",
+                value = state.name,
+                onValueChange = state::updateName
+            )
+
+            CustomTextField(
+                label = "Username:",
+                value = state.username,
+                onValueChange = state::updateUsername
+            )
+
+            CustomTextField(
+                label = "NIM:",
+                value = state.nim,
+                onValueChange = state::updateNim,
+                isNumber = true
+            )
+
+            CustomTextField(
+                label = "Email:",
+                value = state.email,
+                onValueChange = state::updateEmail
+            )
+
+            CustomTextField(
+                label = "Password:",
+                value = state.password,
+                onValueChange = state::updatePassword,
+                isPassword = true
+            )
+
+            CustomTextField(
+                label = "Confirm Password:",
+                value = state.confirmPassword,
+                onValueChange = state::updateConfirmPassword,
+                isPassword = true
+            )
+
+            // DROPDOWN PROGRAM (BARU)
+            CustomDropdownProgram(
+                label = "Program:",
+                selectedId = state.programId,
+                onValueChange = state::updateProgramId,
+                options = programOptions,
+                containerColor = DarkGreen
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // --- Tombol Save ---
+            Button(
+                onClick = { state.validateAndSave(context) },
+                colors = ButtonDefaults.buttonColors(containerColor = GoldButton),
+                shape = RoundedCornerShape(30.dp),
+                enabled = !state.isLoading,
+                modifier = Modifier.fillMaxWidth().height(50.dp)
+            ) {
+                if (state.isLoading) {
+                    CircularProgressIndicator(
+                        color = Color.Black,
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 3.dp
                     )
+                } else {
+                    Text("Save", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
             }
+
+            // Extra spacer untuk memberi ruang di bawah
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
-// --- Komponen Input Custom (Tidak Berubah) ---
+// --- Komponen Input Custom ---
 @Composable
 fun CustomTextField(
     label: String,
@@ -300,29 +236,20 @@ fun CustomTextField(
             text = label,
             color = TextWhite,
             fontSize = 14.sp,
-            modifier = Modifier.padding(bottom = 8.dp),
-            fontFamily = urbanistFontFamily
+            modifier = Modifier.padding(bottom = 8.dp)
         )
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            visualTransformation = if (isPassword) androidx.compose.ui.text.input.PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
+            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
             keyboardOptions = if (isNumber) KeyboardOptions(keyboardType = KeyboardType.Number)
             else if (isPassword) KeyboardOptions(keyboardType = KeyboardType.Password)
             else KeyboardOptions.Default,
-
-            // Terapkan font Urbanist pada input text
-            textStyle = TextStyle(
-                fontFamily = urbanistFontFamily,
-                fontSize = 16.sp,
-                color = TextWhite
-            ),
-
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = GreenMain,
-                unfocusedContainerColor = GreenMain,
+                focusedContainerColor = DarkGreen,
+                unfocusedContainerColor = DarkGreen,
                 focusedBorderColor = Color.White,
                 unfocusedBorderColor = Color.White,
                 cursorColor = TextWhite,
@@ -334,12 +261,99 @@ fun CustomTextField(
     }
 }
 
-// --- PENGHUBUNG (LOGIKA UI - Tidak Berubah) ---
+// --- Komponen Dropdown Custom untuk Program ---
+@Composable
+fun CustomDropdownProgram(
+    label: String,
+    selectedId: String,
+    onValueChange: (String) -> Unit,
+    options: Map<String, String>,
+    containerColor: Color
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    // Mencari nama label berdasarkan ID yang tersimpan, jika kosong tampilkan ""
+    val displayText = options[selectedId] ?: ""
+
+    Column(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
+        Text(
+            text = label,
+            color = Color.White,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = displayText,
+                onValueChange = {}, // Read Only
+                readOnly = true,
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = TextStyle(
+                    fontSize = 16.sp,
+                    color = Color.White
+                ),
+                trailingIcon = {
+                    Icon(
+                        imageVector = if (expanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                        contentDescription = "Dropdown Icon",
+                        tint = Color.White
+                    )
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = containerColor,
+                    unfocusedContainerColor = containerColor,
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    cursorColor = Color.White
+                ),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true
+            )
+
+            // Layer transparan untuk handle klik agar menu terbuka
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clickable { expanded = !expanded }
+            )
+
+            // Menu Dropdown
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier
+                    .background(Color.White)
+                    .fillMaxWidth(0.9f)
+            ) {
+                options.forEach { (id, name) ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = name,
+                                color = Color.Black
+                            )
+                        },
+                        onClick = {
+                            onValueChange(id) // Mengirim ID (misal "1") ke ViewModel
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+// --- PENGHUBUNG (LOGIKA UI) ---
 class RealAddMahasiswaState(
     private val viewModel: MahasiswaViewModel,
     private val token: String
 ) : AddMahasiswaState {
 
+    // State Form
     override var name by mutableStateOf("")
     override var username by mutableStateOf("")
     override var nim by mutableStateOf("")
@@ -348,6 +362,7 @@ class RealAddMahasiswaState(
     override var confirmPassword by mutableStateOf("")
     override var programId by mutableStateOf("")
 
+    // State dari ViewModel
     var currentState by mutableStateOf(AddMahasiswaUiState())
 
     override val isLoading: Boolean get() = currentState.isLoading
@@ -363,18 +378,20 @@ class RealAddMahasiswaState(
     override fun updateProgramId(newValue: String) { programId = newValue }
 
     override fun validateAndSave(context: android.content.Context) {
+        // 1. Validasi Input Kosong
         if (name.isBlank() || username.isBlank() || nim.isBlank() || email.isBlank() || password.isBlank() || programId.isBlank()) {
             Toast.makeText(context, "Semua field harus diisi!", Toast.LENGTH_SHORT).show()
             return
         }
 
+        // 2. Validasi Password Sama
         if (password != confirmPassword) {
             Toast.makeText(context, "Password dan Konfirmasi tidak cocok!", Toast.LENGTH_SHORT).show()
             return
         }
 
+        // 3. Cek Token
         if (token.isNotEmpty()) {
-            // Logika konversi programId ke Int tetap aman
             viewModel.addMahasiswa(
                 token = token,
                 name = name,

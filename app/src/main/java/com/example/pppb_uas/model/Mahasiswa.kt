@@ -27,7 +27,7 @@ data class Mahasiswa(
 }
 
 data class AddStudentRequest(
-    @SerializedName("full_name")
+    @SerializedName("name")
     val name: String,
 
     @SerializedName("username")
