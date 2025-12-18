@@ -163,8 +163,8 @@ class CourseViewModel : ViewModel() {
             errorMessage.value = ""
 
             try {
-                Log.d("CourseVM", "🗑️ Deleting course ID: $id")
-
+                Log.d("CourseVM", "🗑Deleting course ID: $id")
+                
                 val response = apiService.deleteSubject("Bearer $token", id)
 
                 if (response.isSuccessful) {

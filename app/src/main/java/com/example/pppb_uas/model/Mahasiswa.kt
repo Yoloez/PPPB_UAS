@@ -3,7 +3,6 @@ package com.example.pppb_uas.model
 import com.google.gson.annotations.SerializedName
 
 data class Mahasiswa(
-    // ⚠️ PERHATIKAN: key json harus sama persis dengan backend
     @SerializedName("id_user_si") val id: String? = null,
     @SerializedName("full_name") val name: String? = null,
     @SerializedName("username") val username: String? = null,
@@ -50,8 +49,6 @@ data class AddStudentRequest(
 
     @SerializedName("id_program")
     val programId: Int,
-
-
 )
 
 data class MahasiswaResponse(

@@ -6,7 +6,7 @@
         <item name="windowSplashScreenBackground">#015023</item>
 
         <!-- Icon - GANTI KE NAMA BARU -->
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_screen</item>
+        <item name="windowSplashScreenAnimatedIcon">@style/Theme.SplashScreen.IconBackground</item>
 
         <!-- Durasi -->
         <item name="windowSplashScreenAnimationDuration">1000</item>

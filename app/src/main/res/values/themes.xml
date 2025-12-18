@@ -2,18 +2,12 @@
     <style name="Theme.PPPB_UAS" parent="android:Theme.Material.Light.NoActionBar" />
 
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <!-- Background hijau -->
         <item name="windowSplashScreenBackground">#015023</item>
-
-        <!-- Icon - GANTI KE NAMA BARU -->
         <item name="windowSplashScreenAnimatedIcon">@style/Theme.SplashScreen.IconBackground</item>
 
         <!-- Durasi -->
         <item name="windowSplashScreenAnimationDuration">1000</item>
-
-        <!-- Icon size - TAMBAHKAN INI -->
         <item name="windowSplashScreenIconBackgroundColor">#015023</item>
-
         <!-- Post splash theme -->
         <item name="postSplashScreenTheme">@style/Theme.PPPB_UAS</item>
 
